@@ -118,6 +118,17 @@ if __name__ == '__main__':
         print("*" * 20, "Done with this timestep!", "*" * 20)
         print("\n")
 
-
+        """
+        Output example:
+        ******************** Start computation for time step 1 ********************
+        Decoder output shape: torch.Size([5, 698])
+        Decoder hidden shape: torch.Size([2, 5, 256])
+        Target variable before reshaping (shape): torch.Size([5])
+        Target variable before reshaping: tensor([ 23, 165,  86,  86,   2], device='cuda:0')
+        Target variable after reshaping (new decoder input): torch.Size([1, 5])
+        Loss:  6.553864479064941
+        ******************** Done with this timestep! ********************
+        
+        """
 
 

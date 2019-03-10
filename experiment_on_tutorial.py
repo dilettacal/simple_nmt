@@ -7,7 +7,7 @@ from tutorial.evaluate import GreedySearchDecoder, evaluateInput
 from tutorial.train import run_experiment
 from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device
 from data.prepro import *
-from data.utils import train_split
+from data.utils import train_split, filter_pairs
 from data.tokenize import Vocab
 from tutorial.decoder import DecoderGRU
 from tutorial.encoder import EncoderGRU
@@ -47,9 +47,9 @@ if __name__ == '__main__':
     trg_lang = "deu"
     exp_contraction = True
     src_reversed = False
-    limit = None
+    limit = 10000
 
-    pairs = read_lines(DATA_DIR, FILENAME)
+    pairs = read_lines(os.path.join(".",DATA_DIR), FILENAME)
     print(len(pairs))
     print(pairs[10])
 
@@ -68,6 +68,8 @@ if __name__ == '__main__':
     print(os.path.join(DATA_DIR, cleaned_file))
 
     pairs = preprocess_pipeline(pairs, cleaned_file, exp_contraction)
+
+    #pairs = filter_pairs(pairs, len_tuple=(1,15))
 
     if limit:
         pairs = pairs[:limit]
@@ -93,8 +95,8 @@ if __name__ == '__main__':
     # Configure models
     model_name = 'nmt_model'
     hidden_size = 256
-    encoder_n_layers = 1
-    decoder_n_layers = 1
+    encoder_n_layers = 2
+    decoder_n_layers = 2
     dropout = 0.1
     batch_size = 64
 
@@ -153,11 +155,11 @@ if __name__ == '__main__':
 
 
     # Configure training/optimization
-    clip = 30.0
-    teacher_forcing_ratio = 0.5
-    learning_rate = 0.001
+    clip = 10.0
+    teacher_forcing_ratio = 0.2
+    learning_rate = 0.01
     decoder_learning_ratio = 5.0
-    n_iteration = 50000
+    n_iteration = 30000
     print_every = 1000
     save_every = 1000
 

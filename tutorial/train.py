@@ -138,8 +138,9 @@ def run_experiment(model_name, src_voc, tar_voc, encoder, decoder,
     training_batches = [batch2TrainDataTutorial(src_voc, tar_voc, [random.choice(train_set_pairs) for _ in range(batch_size)])
                         for _ in range(n_iteration)]
 
+    val_batch = 1
     # Load batches for each iteration
-    val_batches = [batch2TrainDataTutorial(src_voc, tar_voc, [random.choice(val_set_pairs) for _ in range(batch_size)])
+    val_batches = [batch2TrainDataTutorial(src_voc, tar_voc, [random.choice(val_set_pairs) for _ in range(val_batch)])
                    for _ in range(n_iteration)]
 
 
@@ -182,7 +183,7 @@ def run_experiment(model_name, src_voc, tar_voc, encoder, decoder,
         decoder.eval()
 
         val_loss = evaluate(val_in_variable, in_variable_len, val_tar_variable, tar_mask, tar_variable_len,
-                        encoder, decoder, batch_size)
+                        encoder, decoder, val_batch)
 
         val_print_loss += val_loss
 

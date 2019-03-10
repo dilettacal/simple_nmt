@@ -71,6 +71,7 @@ if __name__ == '__main__':
 
     pairs = preprocess_pipeline(pairs, cleaned_file, exp_contraction)
 
+
     if limit:
         pairs = pairs[:limit]
 
@@ -94,9 +95,9 @@ if __name__ == '__main__':
 
     # Configure models
     model_name = 'nmt_model'
-    hidden_size = 256
-    encoder_n_layers = 1
-    decoder_n_layers = 1
+    hidden_size = 512
+    encoder_n_layers = 2
+    decoder_n_layers = 2
     dropout = 0.1
     batch_size = 64
 
@@ -139,7 +140,7 @@ if __name__ == '__main__':
         src_emb.load_state_dict(src_emb_check)
         trg_emb.load_state_dict(trg_emb_check)
     # Initialize encoder & decoder models
-    encoder = EncoderGRU(hidden_size, src_emb, encoder_n_layers, dropout)
+    encoder = EncoderGRU(hidden_size, src_emb, encoder_n_layers, dropout, bidirectional=True)
     decoder = DecoderGRU(trg_emb, hidden_size, trg_vocab.num_words, decoder_n_layers, dropout)
 
     if loadFilename:
@@ -154,10 +155,10 @@ if __name__ == '__main__':
 
     # Configure training/optimization
     clip = 10.0
-    teacher_forcing_ratio = 0.1
-    learning_rate = 0.0001
+    teacher_forcing_ratio = 0.5
+    learning_rate = 0.00001
     decoder_learning_ratio = 5.0
-    n_iteration = 10000
+    n_iteration = 5000
     print_every = 100
     save_every = 500
 
