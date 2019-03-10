@@ -1,47 +1,18 @@
 import argparse
+
 import torch
+from torch import optim, nn
 
-from torch import nn, optim
-
-from tutorial.evaluate import GreedySearchDecoder, evaluateInput
-from tutorial.train import run_experiment
-from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device
 from data.prepro import *
-from data.utils import train_split
 from data.tokenize import Vocab
-from tutorial.decoder import DecoderGRU
-from tutorial.encoder import EncoderGRU
-
-parser = {
-    'epochs': 50,
-    'batch_size': 100,
-    'max_len': 20,  # max length of grapheme/phoneme sequences
-    'src_emb_dim': 500,  # embedding dimension
-    'trg_emb_dim': 500,
-    'hidden_dim': 500,  # hidden dimension
-    'log_every': 100,  # number of iterations to log and validate training
-    'lr': 0.007,  # initial learning rate
-    'clip': 2.3,  # clip gradient, to avoid exploding gradient
-    'cuda': True,  # using gpu or not
-    'seed': 5,  # initial seed
-    'store_dir': './experiment/checkpoint/',  # path to save models
-    'data_dir': './data/',
-    'prepro_file': './data/prepro/',
-    'limit': None,  # get the first 'limit' pairs of the dataset -> reduces dataset
-    'min_sent_len': None,
-    'max_sent_len': None,
-    'filter_question': False,
-    'filter_eng_prefixes': False,
-    'expand_contractions': True
-}
+from data.utils import train_split
+from global_settings import FILENAME, DATA_DIR, device
+from model.decoder import DecoderLSTM
+from model.encoder import EncoderLSTM
+from model.nmtmodel import NMTModel, count_parameters
+from experiment.experiment import run_experiment
 
 if __name__ == '__main__':
-    args = argparse.Namespace(**parser)
-    args.cuda = args.cuda and torch.cuda.is_available()
-
-    torch.manual_seed(args.seed)
-    if args.cuda:
-        torch.cuda.manual_seed(args.seed)
 
     src_lang = "eng"
     trg_lang = "deu"
@@ -67,7 +38,7 @@ if __name__ == '__main__':
     # pairs = preprocess_pipeline(file, exp_contraction)
 
     # pairs = read_lines(os.path.join(DATA_DIR, FILENAME))
-    print(os.path.join(DATA_DIR, cleaned_file))
+    #print(os.path.join(DATA_DIR, cleaned_file))
 
     pairs = preprocess_pipeline(pairs, cleaned_file, exp_contraction)
 
@@ -79,127 +50,56 @@ if __name__ == '__main__':
     train_set, test_set = train_split(pairs)
     save_clean_data(PREPRO_DIR, train_set, filename="train.pkl")
     save_clean_data(PREPRO_DIR, test_set, filename="test.pkl")
-    print(train_set[:10])
-    print(test_set[:10])
-    print("Splitting src and trg sents for vocabularies...")
+    #print(train_set[:10])
+    #print(test_set[:10])
+    print("Creating vocabularies...")
     src_sents = [item[0] for item in pairs]
     trg_sents = [item[1] for item in pairs]
-
-    print(type(src_sents[1]))
-
     src_vocab = Vocab.build_vocab_from_pairs(src_sents, lang=src_lang)
     trg_vocab = Vocab.build_vocab_from_pairs(trg_sents, lang=trg_lang)
-
     print(src_vocab)
     print(trg_vocab)
 
     # Configure models
     model_name = 'nmt_model'
-    hidden_size = 512
-    encoder_n_layers = 2
-    decoder_n_layers = 2
-    dropout = 0.1
-    batch_size = 64
 
-    # Set checkpoint to load from; set to None if starting from scratch
-    loadFilename = None
-    checkpoint_iter = 4000
-    if os.path.isfile(os.path.join(SAVE_DIR, model_name, FILENAME,
-                                   '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
-                                   '{}_checkpoint.tar'.format(checkpoint_iter))):
+    INPUT_DIM = src_vocab.num_words
+    OUTPUT_DIM = trg_vocab.num_words
+    ENC_EMB_DIM = 256
+    DEC_EMB_DIM = 256
+    HID_DIM = 512
+    N_LAYERS = 2
+    ENC_DROPOUT = 0.5
+    DEC_DROPOUT = 0.5
 
-        loadFilename = os.path.join(SAVE_DIR, model_name, FILENAME,
-                                    '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
-                                    '{}_checkpoint.tar'.format(checkpoint_iter))
-    else:
-        loadFilename = None
+    BATCH_SIZE = 128
+    train_n_iterations = int(len(train_set) / BATCH_SIZE)
+    val_n_iterations = int(len(test_set) / BATCH_SIZE)
 
-    loadFilename = None  # comment this line if you want to use an existing model
+    EPOCH = 5
 
-    # Load model if a loadFilename is provided
-    if loadFilename:
-        # If loading on same machine the model was trained on
-        checkpoint = torch.load(loadFilename)
-        # If loading a model trained on GPU to CPU
-        # checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
-        encoder_sd = checkpoint['en']
-        decoder_sd = checkpoint['de']
-        encoder_optimizer_sd = checkpoint['en_opt']
-        decoder_optimizer_sd = checkpoint['de_opt']
-        src_emb_check = checkpoint['src_embedding']
-        trg_emb_check = checkpoint['trg_embedding']
-        src_vocab.__dict__ = checkpoint['src_dict']
-        trg_vocab.__dict__ = checkpoint['tar_dict']
+    TOTAL_ITERATIONS = EPOCH * train_n_iterations
 
-    print('Building encoder and decoder ...')
-    # Initialize word embeddings
-    src_emb = nn.Embedding(src_vocab.num_words, hidden_size)
-    trg_emb = nn.Embedding(trg_vocab.num_words, hidden_size)
+    enc = EncoderLSTM(vocab_size=INPUT_DIM, emb_dim=ENC_EMB_DIM, rnn_hidden_size=HID_DIM, n_layers=N_LAYERS, dropout=ENC_DROPOUT)
+    dec = DecoderLSTM(vocab_size=OUTPUT_DIM, emb_dim=DEC_EMB_DIM, rnn_hidden_size=HID_DIM, n_layers=N_LAYERS, dropout=DEC_DROPOUT)
+    model = NMTModel(enc, dec, device).to(device)
 
-    if loadFilename:
-        src_emb.load_state_dict(src_emb_check)
-        trg_emb.load_state_dict(trg_emb_check)
-    # Initialize encoder & decoder models
-    encoder = EncoderGRU(hidden_size, src_emb, encoder_n_layers, dropout, bidirectional=True)
-    decoder = DecoderGRU(trg_emb, hidden_size, trg_vocab.num_words, decoder_n_layers, dropout)
+    print("Model architecture summary: ")
+    print(model)
 
-    if loadFilename:
-        encoder.load_state_dict(encoder_sd)
-        decoder.load_state_dict(decoder_sd)
-    # Use appropriate device
-    encoder = encoder.to(device)
-    decoder = decoder.to(device)
-    print('Models built and ready to go!')
-    print(encoder)
-    print(decoder)
+    print(f'The model has {count_parameters(model):,} trainable parameters')
 
-    # Configure training/optimization
-    clip = 10.0
-    teacher_forcing_ratio = 0.5
-    learning_rate = 0.00001
-    decoder_learning_ratio = 5.0
-    n_iteration = 5000
-    print_every = 100
-    save_every = 500
+    optimizer = optim.Adam(model.parameters())
+    criterion = nn.CrossEntropyLoss(ignore_index=0)
 
-    # Ensure dropout layers are in train mode
-    # encoder.train()
-    # decoder.train()
 
-    # Initialize optimizers
-    print('Building optimizers ...')
-    encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
-    decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
-    if loadFilename:
-        encoder_optimizer.load_state_dict(encoder_optimizer_sd)
-        decoder_optimizer.load_state_dict(decoder_optimizer_sd)
+    print("Starting experiment...")
+    run_experiment(src_voc=src_vocab, tar_voc=trg_vocab, model=model, optimizer=optimizer, num_epochs=EPOCH, criterion=criterion,
+                   train_set=train_set, eval_set=test_set, train_batch_size=BATCH_SIZE, val_batch_size=BATCH_SIZE, clip=10., teacher_forcing_ratio=0.2, train_iteration = train_n_iterations, val_iteration=val_n_iterations)
 
-    # Run training iterations
-    print("Running experiment.....")
-    """
-    def run_experiment(model_name, src_voc, tar_voc, encoder, decoder,
-                   encoder_optimizer, decoder_optimizer,
-                   src_embedding, trg_embedding,
-                   encoder_n_layers, decoder_n_layers,
-                   save_dir, n_iteration, batch_size, print_every,
-                   save_every, clip, corpus_name, loadFilename, hidden_size, train_set_pairs, val_set_pairs, teacher_forcing_ratio=0):
 
-    """
-    run_experiment(model_name, src_vocab, trg_vocab, encoder, decoder, encoder_optimizer, decoder_optimizer,
-                   src_emb, trg_emb, encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-                   print_every, save_every, clip, "eng-deu.txt", loadFilename, hidden_size=hidden_size,
-                   teacher_forcing_ratio=teacher_forcing_ratio, train_set_pairs=train_set, val_set_pairs=test_set)
 
-    print("Experiment complete!")
-    print("\n")
-    print("*" * 100)
-    print("Entering the translation mode....")
 
-    encoder.eval()
-    decoder.eval()
 
-    # Initialize search module
-    searcher = GreedySearchDecoder(encoder, decoder)
 
-    # Begin chatting (uncomment and run the following line to begin)
-    evaluateInput(encoder, decoder, searcher, src_vocab, trg_vocab)
+

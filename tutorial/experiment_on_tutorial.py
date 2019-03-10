@@ -12,37 +12,8 @@ from data.tokenize import Vocab
 from tutorial.decoder import DecoderGRU
 from tutorial.encoder import EncoderGRU
 
-parser = {
-    'epochs': 50,
-    'batch_size': 100,
-    'max_len': 20,  # max length of grapheme/phoneme sequences
-    'src_emb_dim': 500,  # embedding dimension
-    'trg_emb_dim': 500,
-    'hidden_dim': 500,  # hidden dimension
-    'log_every': 100,  # number of iterations to log and validate training
-    'lr': 0.007,  # initial learning rate
-    'clip': 2.3,  # clip gradient, to avoid exploding gradient
-    'cuda': True,  # using gpu or not
-    'seed': 5,  # initial seed
-    'store_dir': './experiment/checkpoint/',  # path to save models
-    'data_dir': './data/',
-    'prepro_file':'./data/prepro/',
-    'limit': None, # get the first 'limit' pairs of the dataset -> reduces dataset
-    'min_sent_len': None,
-    'max_sent_len':None,
-    'filter_question': False,
-    'filter_eng_prefixes': False,
-    'expand_contractions': True
-}
 
 if __name__ == '__main__':
-    args = argparse.Namespace(**parser)
-    args.cuda = args.cuda and torch.cuda.is_available()
-
-    torch.manual_seed(args.seed)
-    if args.cuda:
-        torch.cuda.manual_seed(args.seed)
-
     src_lang = "eng"
     trg_lang = "deu"
     exp_contraction = True

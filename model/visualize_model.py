@@ -4,7 +4,7 @@ from torch import optim, nn
 
 from model.decoder import  DecoderLSTM
 from model.encoder import EncoderLSTM
-from model.seq2seq import Seq2Seq
+from model.nmtmodel import NMTModel
 
 from data.tokenize import batch2TrainData
 from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device

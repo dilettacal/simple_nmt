@@ -17,15 +17,17 @@ class EncoderLSTM(nn.Module):
         self.embedding = nn.Embedding(vocab_size, emb_dim,padding_idx=0)
         self.rnn = nn.LSTM(emb_dim, rnn_hidden_size, num_layers=n_layers, bidirectional=bidirectional)
 
-    def forward(self, input_seq, input_lengths):
+    def forward(self, input_seq, input_lengths=None):
+
         seq_embedded = self.dropout(self.embedding(input_seq))
-        seq_packed = torch.nn.utils.rnn.pack_padded_sequence(seq_embedded, input_lengths)
 
-        enc_outputs, (enc_hidden, enc_cell) = self.rnn(seq_packed)
+        if not input_lengths is None:
+            seq_embedded = torch.nn.utils.rnn.pack_padded_sequence(seq_embedded, input_lengths)
 
-        outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(enc_outputs)
+            enc_outputs, (enc_hidden, enc_cell) = self.rnn(seq_embedded)
 
-        if self.bidirectional:
-            outputs = outputs[:, :, :self.hidden_size] + outputs[:, :, self.hidden_size:]
+            enc_outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(enc_outputs)
+        else:
+            enc_outputs, (enc_hidden, enc_cell) = self.rnn(seq_embedded)
 
-        return outputs, enc_hidden, enc_cell
+        return enc_outputs, enc_hidden, enc_cell

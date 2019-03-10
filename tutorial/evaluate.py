@@ -8,7 +8,7 @@ from data.tokenize import SOS_idx, indexesFromSentence, EOS_token, SOS_token, PA
 
 
 """
-Code inspired by: 
+Code from: 
 
 PyTorch Chatbot tutorial: 
 https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
