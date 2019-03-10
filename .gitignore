@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 /data/deu-eng.zip
 .idea/
+/tutorial/keras/*
