@@ -7,6 +7,15 @@ from global_settings import device, MAX_LENGTH
 from data.tokenize import SOS_idx, indexesFromSentence, EOS_token, SOS_token, PAD_token
 
 
+"""
+Code inspired by: 
+
+PyTorch Chatbot tutorial: 
+https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
+
+"""
+
+
 class GreedySearchDecoder(nn.Module):
     def __init__(self, encoder, decoder):
         super(GreedySearchDecoder, self).__init__()
@@ -39,35 +48,22 @@ class GreedySearchDecoder(nn.Module):
 
 
 
-def evaluate(encoder, decoder, searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH, eval_input=True):
-    if eval_input:
-        ### Format input sentence as a batch
-        # words -> indexes
-        indexes_batch = [indexesFromSentence(src_voc, sentence)]
-        # Create lengths tensor
-        lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
-        # Transpose dimensions of batch to match models' expectations
-        input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
-        # Use appropriate device
-        input_batch = input_batch.to(device)
-        lengths = lengths.to(device)
-        # Decode sentence with searcher
-        tokens, scores = searcher(input_batch, lengths, max_length)
-        # indexes -> words
-        decoded_words = [trg_voc.index2word[token.item()] for token in tokens]
-        return decoded_words
-    else:
-        #TODO: implement this!
-        with torch.no_grad():
-            # words -> indexes
-            indexes_batch = [indexesFromSentence(src_voc, sentence)]
-            # Create lengths tensor
-            lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
-            # Transpose dimensions of batch to match models' expectations
-            input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
-            # Use appropriate device
-            input_batch = input_batch.to(device)
-            lengths = lengths.to(device)
+def live_evaluate(encoder, decoder, searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
+     ### Format input sentence as a batch
+    # words -> indexes
+    indexes_batch = [indexesFromSentence(src_voc, sentence)]
+    # Create lengths tensor
+    lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
+    # Transpose dimensions of batch to match models' expectations
+    input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
+    # Use appropriate device
+    input_batch = input_batch.to(device)
+    lengths = lengths.to(device)
+    # Decode sentence with searcher
+    tokens, scores = searcher(input_batch, lengths, max_length)
+    # indexes -> words
+    decoded_words = [trg_voc.index2word[token.item()] for token in tokens]
+    return decoded_words
 
 
 def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc, expand_contraction=None):
@@ -81,7 +77,7 @@ def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc, expand_contract
             # Normalize sentence
             input_sentence = preprocess_sentence(input_sentence, expand_contractions=expand_contraction)
             # Evaluate sentence
-            output_words = evaluate(encoder, decoder, searcher, src_voc, trg_voc, input_sentence)
+            output_words = live_evaluate(encoder, decoder, searcher, src_voc, trg_voc, input_sentence)
             # Format and print response sentence
             output_words[:] = [x for x in output_words if not (x == EOS_token or x == PAD_token)]
             print('Translation:', ' '.join(output_words))

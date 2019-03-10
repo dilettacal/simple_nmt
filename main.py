@@ -1,12 +1,11 @@
 import argparse
 import torch
-import os
 
 from torch import nn, optim
 
 from experiment.evaluate import GreedySearchDecoder, evaluateInput
-from experiment.train import trainIters
-from global_settings import FILENAME, DATA_DIR, EXPERIMENT_DIR, PREPRO_DIR, SAVE_DIR, device
+from experiment.train import run_experiment
+from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device
 from data.prepro import *
 from data.utils import train_split
 from data.tokenize import Vocab
@@ -36,43 +35,6 @@ parser = {
     'expand_contractions': True
 }
 
-def preprocess_pipeline(pairs, cleaned_file_to_store, exp_contraction=None, reverse_pairs=False):
-    """
-    Assuming english as input language
-    :param cleaned_file_to_store:
-    :param exp_contraction:
-    :param reverse_pairs:
-    :return:
-    """
-
-   # pairs = read_lines(DATA_DIR, FILENAME)
-  #  print(len(pairs))
-    #print(pairs[10])
-    src_sents = [item[0] for item in pairs]
-    trg_sents = [item[1] for item in pairs]
-    if expand_contraction:
-        src_mapping = ENG_CONTRACTIONS_MAP
-        trg_mapping = UMLAUT_MAP
-    else:
-        src_mapping = exp_contraction
-        trg_mapping = exp_contraction
-
-    cleaned_pairs = []
-    for i, (src_sent, trg_sent) in enumerate(pairs):
-        cleaned_src_sent = preprocess_sentence(src_sent, src_mapping)
-        cleaned_trg_sent = preprocess_sentence(trg_sent, trg_mapping)
-        cleaned_list = [cleaned_src_sent, cleaned_trg_sent]
-
-        cleaned_pairs.append(cleaned_list)
-
-    if reverse_pairs:
-        cleaned_pairs = reverse_language_pair(cleaned_pairs)
-
-    save_clean_data(PREPRO_DIR, cleaned_pairs, cleaned_file_to_store)
-    return cleaned_pairs
-
-
-
 if __name__ == '__main__':
     args = argparse.Namespace(**parser)
     args.cuda = args.cuda and torch.cuda.is_available()
@@ -83,7 +45,7 @@ if __name__ == '__main__':
 
     src_lang = "eng"
     trg_lang = "deu"
-    exp_contraction = False
+    exp_contraction = True
     src_reversed = False
     limit = 10000
 
@@ -130,9 +92,9 @@ if __name__ == '__main__':
 
     # Configure models
     model_name = 'nmt_model'
-    hidden_size = 500
-    encoder_n_layers = 2
-    decoder_n_layers = 2
+    hidden_size = 256
+    encoder_n_layers = 1
+    decoder_n_layers = 1
     dropout = 0.1
     batch_size = 64
 
@@ -149,6 +111,7 @@ if __name__ == '__main__':
     else:
         loadFilename = None
 
+    loadFilename = None #comment this line if you want to use an existing model
 
 
     # Load model if a loadFilename is provided
@@ -190,8 +153,8 @@ if __name__ == '__main__':
 
 
     # Configure training/optimization
-    clip = 30.0
-    teacher_forcing_ratio = 0.3
+    clip = 10.0
+    teacher_forcing_ratio = 0.1
     learning_rate = 0.0001
     decoder_learning_ratio = 5.0
     n_iteration = 10000
@@ -199,8 +162,8 @@ if __name__ == '__main__':
     save_every = 500
 
     # Ensure dropout layers are in train mode
-    encoder.train()
-    decoder.train()
+    #encoder.train()
+    #decoder.train()
 
     # Initialize optimizers
     print('Building optimizers ...')
@@ -211,14 +174,27 @@ if __name__ == '__main__':
         decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 
     # Run training iterations
-    print("Starting Training!")
-    #TODO: Re-train model on train_set
-    trainIters(model_name, src_vocab, trg_vocab, train_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
-               src_emb, trg_emb, encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-               print_every, save_every, clip, "eng-deu.txt", loadFilename, hidden_size=hidden_size, teacher_forcing_ratio=teacher_forcing_ratio)
+    print("Running experiment.....")
+    """
+    def run_experiment(model_name, src_voc, tar_voc, encoder, decoder,
+                   encoder_optimizer, decoder_optimizer,
+                   src_embedding, trg_embedding,
+                   encoder_n_layers, decoder_n_layers,
+                   save_dir, n_iteration, batch_size, print_every,
+                   save_every, clip, corpus_name, loadFilename, hidden_size, train_set_pairs, val_set_pairs, teacher_forcing_ratio=0):
+    
+    """
+    run_experiment(model_name, src_vocab, trg_vocab, encoder, decoder, encoder_optimizer, decoder_optimizer,
+                   src_emb, trg_emb, encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
+                   print_every, save_every, clip, "eng-deu.txt", loadFilename, hidden_size=hidden_size, teacher_forcing_ratio=teacher_forcing_ratio, train_set_pairs=train_set, val_set_pairs=test_set)
 
 
-    #TODO: Implement evaluation on test or random set and then start evaluation at runtime
+
+
+    print("Experiment complete!")
+    print("\n")
+    print("*"*100)
+    print("Entering the translation mode....")
 
     encoder.eval()
     decoder.eval()

@@ -7,6 +7,7 @@ from pickle import dump, load
 
 from data.mappings import UMLAUT_MAP, ENG_CONTRACTIONS_MAP
 from data.tokenize import SOS_token, EOS_token
+from global_settings import PREPRO_DIR
 
 
 def read_lines(root, filename):
@@ -150,3 +151,39 @@ def load_cleaned_data(path, filename):
     if(os.path.isfile(path_to_file)):
         return load(open(path_to_file, 'rb'))
     else: raise RuntimeError("File not found, please preprocess and save sentences!")
+
+
+def preprocess_pipeline(pairs, cleaned_file_to_store, exp_contraction=None, reverse_pairs=False):
+    """
+    Assuming english as input language
+    :param cleaned_file_to_store:
+    :param exp_contraction:
+    :param reverse_pairs:
+    :return:
+    """
+
+   # pairs = read_lines(DATA_DIR, FILENAME)
+  #  print(len(pairs))
+    #print(pairs[10])
+    src_sents = [item[0] for item in pairs]
+    trg_sents = [item[1] for item in pairs]
+    if expand_contraction:
+        src_mapping = ENG_CONTRACTIONS_MAP
+        trg_mapping = UMLAUT_MAP
+    else:
+        src_mapping = exp_contraction
+        trg_mapping = exp_contraction
+
+    cleaned_pairs = []
+    for i, (src_sent, trg_sent) in enumerate(pairs):
+        cleaned_src_sent = preprocess_sentence(src_sent, src_mapping)
+        cleaned_trg_sent = preprocess_sentence(trg_sent, trg_mapping)
+        cleaned_list = [cleaned_src_sent, cleaned_trg_sent]
+
+        cleaned_pairs.append(cleaned_list)
+
+    if reverse_pairs:
+        cleaned_pairs = reverse_language_pair(cleaned_pairs)
+
+    save_clean_data(PREPRO_DIR, cleaned_pairs, cleaned_file_to_store)
+    return cleaned_pairs

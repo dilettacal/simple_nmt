@@ -1,8 +1,5 @@
 import torch
 import torch.nn as nn
-from torch import optim
-import torch.nn.functional as F
-
 
 class EncoderGRU(nn.Module):
     def __init__(self, hidden_size, embedding, n_layers=1, dropout=0, bidirectional=False):
