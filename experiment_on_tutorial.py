@@ -3,14 +3,14 @@ import torch
 
 from torch import nn, optim
 
-from experiment.evaluate import GreedySearchDecoder, evaluateInput
-from experiment.train import run_experiment
+from tutorial.evaluate import GreedySearchDecoder, evaluateInput
+from tutorial.train import run_experiment
 from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device
 from data.prepro import *
 from data.utils import train_split
 from data.tokenize import Vocab
-from model.decoder import DecoderGRU
-from model.encoder import EncoderGRU
+from tutorial.decoder import DecoderGRU
+from tutorial.encoder import EncoderGRU
 
 parser = {
     'epochs': 50,
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     trg_lang = "deu"
     exp_contraction = True
     src_reversed = False
-    limit = 10000
+    limit = None
 
     pairs = read_lines(DATA_DIR, FILENAME)
     print(len(pairs))
@@ -153,13 +153,13 @@ if __name__ == '__main__':
 
 
     # Configure training/optimization
-    clip = 10.0
-    teacher_forcing_ratio = 0.1
-    learning_rate = 0.0001
+    clip = 30.0
+    teacher_forcing_ratio = 0.5
+    learning_rate = 0.001
     decoder_learning_ratio = 5.0
-    n_iteration = 10000
-    print_every = 100
-    save_every = 500
+    n_iteration = 50000
+    print_every = 1000
+    save_every = 1000
 
     # Ensure dropout layers are in train mode
     #encoder.train()

@@ -153,7 +153,7 @@ def load_cleaned_data(path, filename):
     else: raise RuntimeError("File not found, please preprocess and save sentences!")
 
 
-def preprocess_pipeline(pairs, cleaned_file_to_store, exp_contraction=None, reverse_pairs=False):
+def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None, reverse_pairs=False):
     """
     Assuming english as input language
     :param cleaned_file_to_store:
@@ -185,5 +185,6 @@ def preprocess_pipeline(pairs, cleaned_file_to_store, exp_contraction=None, reve
     if reverse_pairs:
         cleaned_pairs = reverse_language_pair(cleaned_pairs)
 
-    save_clean_data(PREPRO_DIR, cleaned_pairs, cleaned_file_to_store)
+    if cleaned_file_to_store:
+        save_clean_data(PREPRO_DIR, cleaned_pairs, cleaned_file_to_store)
     return cleaned_pairs

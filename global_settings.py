@@ -2,7 +2,7 @@ import os
 import torch
 
 FILENAME = "deu.txt"
-DATA_DIR = "./data/"
+DATA_DIR = "data/"
 PREPRO_DIR = os.path.join(DATA_DIR, "prepro")
 EXPERIMENT_DIR = "./experiment"
 SAVE_DIR = os.path.join(EXPERIMENT_DIR, "checkpoint")

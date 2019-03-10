@@ -89,6 +89,38 @@ def indexesFromSentence(voc, sentence):
 def zeroPadding(l, fillvalue=PAD_idx):
     return list(itertools.zip_longest(*l, fillvalue=fillvalue))
 
+#TO use in combination with CrossEntropyLoss and ignore_index=0
+def seq2paddedTensor(l, voc):
+    indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
+    lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
+    padList = zeroPadding(indexes_batch)
+    padVar = torch.LongTensor(padList)
+    max_len = max([len(indexes) for indexes in indexes_batch])
+    return padVar, lengths, max_len
+
+
+# Returns all items for a given batch of pairs
+def batch2TrainData(src_voc, tar_voc, pair_batch):
+    #print(pair_batch[0])
+    pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
+    input_batch, output_batch = [], []
+    for pair in pair_batch:
+        input_batch.append(pair[0])
+        output_batch.append(pair[1])
+    inp, lengths, _ = seq2paddedTensor(input_batch, src_voc)
+    output, out_lengths, max_tar_len = seq2paddedTensor(output_batch, tar_voc)
+    return inp, lengths, output, out_lengths, max_tar_len
+
+
+### FUnctionalities used in tutorial ####
+# Returns padded input sequence tensor and lengths
+def inputVarTutorial(l, voc):
+    indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
+    lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
+    padList = zeroPadding(indexes_batch)
+    padVar = torch.LongTensor(padList)
+    return padVar, lengths
+
 def binaryMatrix(l, value=PAD_token):
     m = []
     for i, seq in enumerate(l):
@@ -100,16 +132,8 @@ def binaryMatrix(l, value=PAD_token):
                 m[i].append(1)
     return m
 
-# Returns padded input sequence tensor and lengths
-def inputVar(l, voc):
-    indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
-    lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
-    padList = zeroPadding(indexes_batch)
-    padVar = torch.LongTensor(padList)
-    return padVar, lengths
-
 # Returns padded target sequence tensor, padding mask, and max target length
-def outputVar(l, voc):
+def outputVarTutorial(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     max_target_len = max([len(indexes) for indexes in indexes_batch])
     padList = zeroPadding(indexes_batch)
@@ -119,15 +143,15 @@ def outputVar(l, voc):
     return padVar, mask, max_target_len
 
 # Returns all items for a given batch of pairs
-def batch2TrainData(src_voc, tar_voc, pair_batch):
-    print(pair_batch[0])
+def batch2TrainDataTutorial(src_voc, tar_voc, pair_batch):
+    #print(pair_batch[0])
     pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
     input_batch, output_batch = [], []
     for pair in pair_batch:
         input_batch.append(pair[0])
         output_batch.append(pair[1])
-    inp, lengths = inputVar(input_batch, src_voc)
-    output, mask, max_target_len = outputVar(output_batch, tar_voc)
+    inp, lengths = inputVarTutorial(input_batch, src_voc)
+    output, mask, max_target_len = outputVarTutorial(output_batch, tar_voc)
     return inp, lengths, output, mask, max_target_len
 
 
