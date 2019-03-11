@@ -63,6 +63,8 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
 
 
 def train_split(pairs, test_ratio=0.10):
+    #TODO: Also validation set!
+
     num_data = len(pairs)
     shuffle(pairs)
     print(pairs[:1])

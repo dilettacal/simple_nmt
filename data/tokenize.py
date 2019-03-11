@@ -1,9 +1,7 @@
 import itertools
-import random
 
 import torch
 from torch.utils.data import Dataset
-from sklearn.model_selection import train_test_split
 
 PAD_token = "<PAD>"
 SOS_token = "<SOS>"
@@ -100,11 +98,11 @@ class Tokenizer(object):
         sent = [self.vocab.index2word.get(idx, UNK_token) for idx in idx_list]
         return sent, ' '.join([word for word in sent])
 
-
 class NMTDataset(Dataset):
     #Inspired by: https://github.com/howardyclo/pytorch-seq2seq-example/blob/master/seq2seq.ipynb
 
-    def __init__(self, cleaned_pairs, src_lang, trg_lang, src_tokenizer:Tokenizer, trg_tokenizer:Tokenizer):
+    def __init__(self, cleaned_pairs, src_lang, trg_lang,
+                 src_tokenizer:Tokenizer, trg_tokenizer:Tokenizer):
         super(NMTDataset, self).__init__()
         self.pairs = cleaned_pairs
         self.src_lang = src_lang
@@ -118,15 +116,16 @@ class NMTDataset(Dataset):
     def __len__(self):
         return len(self.pairs)
 
+
     def __getitem__(self, idx):
         src_sent = self.src_sents[idx]
         trg_sent = self.trg_sents[idx]
-        sent2tensor_src = self.index_from_sentences(self.src_tokenizer.vocab, src_sent, False, True)
-        sent2tensor_trg = self.index_from_sentences(self.trg_tokenizer.vocab, trg_sent, False, True)
+        sent2tensor_src = self.src_tokenizer.index_from_sentences(self.src_tokenizer.vocab, src_sent, False, True)
+        sent2tensor_trg = self.trg_tokenizer.index_from_sentences(self.trg_tokenizer.vocab, trg_sent, False, True)
         return src_sent, trg_sent, sent2tensor_src, sent2tensor_trg
 
     def reverse_src_sents(self):
-        self.src_sents = self.src_sents[::-1]
+        self.src_sents = [sent[::-1] for sent in self.src_sents]
         self.src_reversed = True
 
     def reverse_language_pairs(self):
@@ -135,15 +134,6 @@ class NMTDataset(Dataset):
         self.trg_tokenizer = temp
         self.src_tokenizer.is_source = True
         self.trg_tokenizer.is_source = False
-
-    def index_from_sentences(self, voc, sentence, append_SOS=True, append_EOS =True):
-        idx = []
-        if append_SOS:
-            idx.append(SOS_idx)
-        idx.extend(voc.word2index.get(token, UNK_idx) for token in sentence.split(" "))
-        if append_EOS:
-            idx.append(EOS_idx)
-        return idx
 
     def set_split(self, name, pairs):
         if name=="train":
@@ -155,7 +145,7 @@ class NMTDataset(Dataset):
 
 
 #### Vectorization methods #####
-
+### TODO: Remove if system works, as they are deprecated
 
 def indexesFromSentence(voc, sentence):
     return [SOS_idx] + [voc.word2index.get(word, UNK_idx) for word in sentence.split(' ')] + [EOS_idx]
@@ -189,7 +179,7 @@ def batch2TrainData(src_voc, tar_voc, pair_batch):
 
 def collate_fn(data):
 
-    # Source: https://github.com/howardyclo/pytorch-seq2seq-example/blob/master/seq2seq.ipynb
+    ### Source: https://github.com/howardyclo/pytorch-seq2seq-example/blob/master/seq2seq.ipynb
 
     """
     Creates mini-batch tensors from (src_sent, tgt_sent, src_seq, tgt_seq).
@@ -234,45 +224,3 @@ def collate_fn(data):
 
     return src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens
 
-
-### FUnctionalities used in tutorial ####
-# Returns padded input sequence tensor and lengths
-def inputVarTutorial(l, voc):
-    indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
-    lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
-    padList = zeroPadding(indexes_batch)
-    padVar = torch.LongTensor(padList)
-    return padVar, lengths
-
-def binaryMatrix(l, value=PAD_token):
-    m = []
-    for i, seq in enumerate(l):
-        m.append([])
-        for token in seq:
-            if token == PAD_idx:
-                m[i].append(0)
-            else:
-                m[i].append(1)
-    return m
-
-# Returns padded target sequence tensor, padding mask, and max target length
-def outputVarTutorial(l, voc):
-    indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
-    max_target_len = max([len(indexes) for indexes in indexes_batch])
-    padList = zeroPadding(indexes_batch)
-    mask = binaryMatrix(padList)
-    mask = torch.ByteTensor(mask)
-    padVar = torch.LongTensor(padList)
-    return padVar, mask, max_target_len
-
-# Returns all items for a given batch of pairs
-def batch2TrainDataTutorial(src_voc, tar_voc, pair_batch):
-    #print(pair_batch[0])
-    pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
-    input_batch, output_batch = [], []
-    for pair in pair_batch:
-        input_batch.append(pair[0])
-        output_batch.append(pair[1])
-    inp, lengths = inputVarTutorial(input_batch, src_voc)
-    output, mask, max_target_len = outputVarTutorial(output_batch, tar_voc)
-    return inp, lengths, output, mask, max_target_len
