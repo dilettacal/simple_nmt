@@ -69,7 +69,11 @@ if __name__ == '__main__':
                             #num_workers=4,
                             collate_fn=collate_fn)
 
-    print(next(iter(train_iter)))
+    for i, batch in enumerate(train_iter):
+        if i == 0:
+            src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens = batch
+            print(src_seqs.shape)
+            print(tgt_seqs.shape)
     exit()
     #print(train_set[:10])
     #print(test_set[:10])
