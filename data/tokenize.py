@@ -1,6 +1,9 @@
 import itertools
+import random
 
 import torch
+from torch.utils.data import Dataset
+from sklearn.model_selection import train_test_split
 
 PAD_token = "<PAD>"
 SOS_token = "<SOS>"
@@ -77,6 +80,78 @@ class Vocab:
             else:
                 voc.add_sentence(sent)
         return voc
+
+
+class Tokenizer(object):
+    def __init__(self, cleaned_sentence_list, lang_name, is_source=False):
+        self.vocab = Vocab.build_vocab_from_pairs(cleaned_sentence_list, lang=lang_name)
+        self.is_source = is_source
+
+    def index_from_sentences(self, sentence, append_SOS=True, append_EOS =True):
+        idx = []
+        if append_SOS:
+            idx.append(SOS_idx)
+        idx.extend(self.vocab.word2index.get(token, UNK_idx) for token in sentence.split(" "))
+        if append_EOS:
+            idx.append(EOS_idx)
+        return idx
+
+    def sentence_from_idx(self, idx_list):
+        sent = [self.vocab.index2word.get(idx, UNK_token) for idx in idx_list]
+        return sent, ' '.join([word for word in sent])
+
+
+class NMTDataset(Dataset):
+    #Inspired by: https://github.com/howardyclo/pytorch-seq2seq-example/blob/master/seq2seq.ipynb
+
+    def __init__(self, cleaned_pairs, src_lang, trg_lang, src_tokenizer:Tokenizer, trg_tokenizer:Tokenizer):
+        super(NMTDataset, self).__init__()
+        self.pairs = cleaned_pairs
+        self.src_lang = src_lang
+        self.trg_lang = trg_lang
+        self.src_tokenizer = src_tokenizer
+        self.trg_tokenizer = trg_tokenizer
+        self.src_sents = [item[0] for item in self.pairs]
+        self.trg_sents = [item[1] for item in self.pairs]
+        self.src_reversed = False
+
+    def __len__(self):
+        return len(self.pairs)
+
+    def __getitem__(self, idx):
+        src_sent = self.src_sents[idx]
+        trg_sent = self.trg_sents[idx]
+        sent2tensor_src = self.index_from_sentences(self.src_tokenizer.vocab, src_sent, False, True)
+        sent2tensor_trg = self.index_from_sentences(self.trg_tokenizer.vocab, trg_sent, False, True)
+        return src_sent, trg_sent, sent2tensor_src, sent2tensor_trg
+
+    def reverse_src_sents(self):
+        self.src_sents = self.src_sents[::-1]
+        self.src_reversed = True
+
+    def reverse_language_pairs(self):
+        temp = self.src_tokenizer
+        self.src_tokenizer = self.trg_tokenizer
+        self.trg_tokenizer = temp
+        self.src_tokenizer.is_source = True
+        self.trg_tokenizer.is_source = False
+
+    def index_from_sentences(self, voc, sentence, append_SOS=True, append_EOS =True):
+        idx = []
+        if append_SOS:
+            idx.append(SOS_idx)
+        idx.extend(voc.word2index.get(token, UNK_idx) for token in sentence.split(" "))
+        if append_EOS:
+            idx.append(EOS_idx)
+        return idx
+
+    def set_split(self, name, pairs):
+        if name=="train":
+            self.train = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
+        elif name == "val":
+            self.val = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
+        elif name =="test":
+            self.test = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
 
 
 #### Vectorization methods #####
@@ -201,5 +276,3 @@ def batch2TrainDataTutorial(src_voc, tar_voc, pair_batch):
     inp, lengths = inputVarTutorial(input_batch, src_voc)
     output, mask, max_target_len = outputVarTutorial(output_batch, tar_voc)
     return inp, lengths, output, mask, max_target_len
-
-

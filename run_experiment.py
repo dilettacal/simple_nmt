@@ -2,9 +2,10 @@ import argparse
 
 import torch
 from torch import optim, nn
+from torch.utils.data import DataLoader
 
 from data.prepro import *
-from data.tokenize import Vocab
+from data.tokenize import Vocab, NMTDataset, Tokenizer, collate_fn
 from data.utils import train_split
 from global_settings import FILENAME, DATA_DIR, device
 from model.decoder import DecoderLSTM
@@ -42,14 +43,34 @@ if __name__ == '__main__':
 
     pairs = preprocess_pipeline(pairs, cleaned_file, exp_contraction)
 
-
     if limit:
         pairs = pairs[:limit]
 
-    print("Splitting train and test set...")
+    src_tokenizer = Tokenizer([item[0] for item in pairs], src_lang)
+    trg_tokenizer = Tokenizer([item[1] for item in pairs], src_lang)
+
+
+    dataset = NMTDataset(pairs, "eng", "deu", src_tokenizer, trg_tokenizer)
+
+    print(dataset.__getitem__(1))
+
     train_set, test_set = train_split(pairs)
+    dataset.set_split('train', train_set)
+    dataset.set_split('test', test_set)
+
     save_clean_data(PREPRO_DIR, train_set, filename="train.pkl")
     save_clean_data(PREPRO_DIR, test_set, filename="test.pkl")
+
+    batch_size = 48
+
+    train_iter = DataLoader(dataset=dataset.train,
+                            batch_size=batch_size,
+                            shuffle=True,
+                            #num_workers=4,
+                            collate_fn=collate_fn)
+
+    print(next(iter(train_iter)))
+    exit()
     #print(train_set[:10])
     #print(test_set[:10])
     print("Creating vocabularies...")
