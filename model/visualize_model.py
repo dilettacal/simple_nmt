@@ -107,7 +107,6 @@ if __name__ == '__main__':
         print("Target variable after reshaping (new decoder input):", decoder_input.shape)
 
         loss = criterion(decoder_output, tar_var[t])
-
         encoder_optim.step()
         decoder_optim.step()
 

@@ -90,7 +90,7 @@ def train(model, train_batches, optimizer, criterion, clip, teacher_force_ratio)
 
 
 
-def evaluate(model, val_batches, criterion):
+def evaluate(model, val_batches, criterion, store_path="./"):
     model.eval()
 
     epoch_loss = 0
@@ -120,7 +120,7 @@ def evaluate_input(input):
 
 def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, teacher_forcing_ratio=0.3):
 
-    best_valid_loss = -1
+    best_valid_loss = float('inf')
 
     save_dir = os.path.join(path_to_root, SAVE_DIR)
     if not os.path.isdir(save_dir):
@@ -139,10 +139,7 @@ def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
-            torch.save(model.state_dict(), save_dir)
+            torch.save(model.state_dict(), SAVE_DIR)
             print("Model saved!")
 
         print(f'| Epoch: {epoch + 1:03} | Time: {epoch_mins}m {epoch_secs}s| Train Loss: {train_loss:.3f} |  Val. Loss: {valid_loss:.3f} |')
-
-
-

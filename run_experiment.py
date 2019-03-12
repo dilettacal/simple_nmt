@@ -71,7 +71,7 @@ if __name__ == '__main__':
     save_clean_data(PREPRO_DIR, train_set, filename="train.pkl")
     save_clean_data(PREPRO_DIR, test_set, filename="test.pkl")
 
-    BATCH_SIZE = 64
+    BATCH_SIZE = 128
 
     print("Building dataloaders. Batch size: %s" %BATCH_SIZE)
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     N_LAYERS = 1
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0
-    EPOCHS = 1
+    EPOCHS = 5
 
     enc = EncoderLSTM(vocab_size=INPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=ENC_DROPOUT)
     dec = DecoderLSTM(vocab_size=OUTPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=DEC_DROPOUT)
