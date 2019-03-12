@@ -71,7 +71,7 @@ if __name__ == '__main__':
     save_clean_data(PREPRO_DIR, train_set, filename="train.pkl")
     save_clean_data(PREPRO_DIR, test_set, filename="test.pkl")
 
-    BATCH_SIZE = 24
+    BATCH_SIZE = 64
 
     print("Building dataloaders. Batch size: %s" %BATCH_SIZE)
 

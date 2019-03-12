@@ -97,23 +97,17 @@ def evaluate(model, val_batches, criterion):
 
     with torch.no_grad():
         for i, batch in enumerate(val_batches):
-
             src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens = batch
-            src = src.to(device)
-            trg = trg.to(device)
 
-            output = model(src, trg, 0)  # turn off teacher forcing
+            src_input_seqs = src_seqs.to(device)
+            trg_output_seqs = tgt_seqs.to(device)
 
-            # trg = [trg sent len, batch size]
-            # output = [trg sent len, batch size, output dim]
+            output = model(src_input_seqs, trg_output_seqs, 0)  #while evaluating teacher forcing is turned off
 
-            output = output[1:].view(-1, output.shape[-1])
-            trg = trg[1:].view(-1)
+            output = output.view(-1, output.shape[-1])
+            trg_output_seqs = trg_output_seqs.view(-1)
 
-            # trg = [(trg sent len - 1) * batch size]
-            # output = [(trg sent len - 1) * batch size, output dim]
-
-            loss = criterion(output, trg)
+            loss = criterion(output, trg_output_seqs)
 
             epoch_loss += loss.item()
 
