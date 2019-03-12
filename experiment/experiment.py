@@ -15,8 +15,6 @@ def epoch_time(start_time, end_time):
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
 
-#1 batch is composed of: inp, lengths, output, out_lengths, max_tar_len
-# inp and output are the variable arrays
 
 def train(model, train_batches, optimizer, criterion, clip, teacher_force_ratio):
     model.train()
@@ -53,36 +51,33 @@ def train(model, train_batches, optimizer, criterion, clip, teacher_force_ratio)
         #src shape [max_len, batch_size]
         #trg_shape [max_len, batch_size]
         #torch.Size([13, 24])
-        # torch.Size([15, 24])
+        #torch.Size([15, 24])
 
-        src = src_seqs.to(device)
-        trg = tgt_seqs.to(device)
-
+        src_input_seqs = src_seqs.to(device)
+        trg_output_seqs = tgt_seqs.to(device)
         optimizer.zero_grad()
-        print("SOurce lenghts", src_lens)
 
-        output = model(src, trg, teacher_force_ratio,src_lens)
+        output = model(src_input_seqs, trg_output_seqs, teacher_force_ratio,src_lens)
         output = output.to(device)
-
-        print("Model output shape")
-        print(output.shape)
-        exit()
+        # output shape is seq_len, batch_size, output dim, e.g. torch.Size([13, 24, 32632])
 
         # trg = [trg sent len, batch size]
         # output = [trg sent len, batch size, output dim]
+        # output.shape[-1] - last value (output dim)
 
-        output = output[1:].view(-1, output.shape[-1])
+        output = output.view(-1, output.shape[-1])
         # reshaped output [seq_len*batch_size, output_dim]
 
-       # print("Target at index 0:", trg[0:]) #SOS token
+        trg_output_seqs = trg_output_seqs.view(-1)
+        #reshaped for use in criterion: (max_len*batch_size) e.g. torch.Size([360])
 
-        trg = trg[1:].view(-1) #not include sos token
+        #CrossEntropyLoss criterion expects as an
+        # input the score of each class (minibatch,C)
+        # and the real target values as a tensor (N)
 
-        # trg = [(trg sent len - 1) * batch size]
-        # output = [(trg sent len - 1) * batch size, output dim]
+        loss = criterion(output, trg_output_seqs)
 
-        loss = criterion(output, trg)
-
+        #Compute gradients
         loss.backward()
 
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
@@ -103,7 +98,7 @@ def evaluate(model, val_batches, criterion):
     with torch.no_grad():
         for i, batch in enumerate(val_batches):
 
-            src, src_lengths, trg, trg_lengths, trg_max_len = batch
+            src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens = batch
             src = src.to(device)
             trg = trg.to(device)
 
