@@ -2,9 +2,7 @@ import random
 
 from torch import optim, nn
 
-from model.decoder import  DecoderLSTM
-from model.encoder import EncoderLSTM
-from model.nmtmodel import NMTModel
+from model.nmtmodel import NMTModel, EncoderLSTM, DecoderLSTM
 
 from data.tokenize import batch2TrainData
 from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device

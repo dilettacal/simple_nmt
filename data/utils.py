@@ -43,21 +43,6 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
 
     if filter_func:
         pairs = [pair for pair in pairs if filter_func(pair[0]) or filter_func(pair[1])]
-    """    for pair in pairs:
-        if len_tuple:
-            min_length = len_tuple[0]
-            max_length = len_tuple[1]
-            print(min_length, max_length)
-
-
-            if len(pair[0]) >= min_length and len(pair[0]) <= max_length \
-                    and len(pair[1]) >= min_length and len(pair[1]) <= max_length:
-                filtered_pairs.append(pair)
-                        #apply second filter
-            if filter_func:
-                print("Apply second filter...")
-                for filter in filter_func:
-                    filtered_pairs = [pair if filter(pair[0] and filter(pair[1])) for pair in filtered_pairs]"""
 
     return pairs
 

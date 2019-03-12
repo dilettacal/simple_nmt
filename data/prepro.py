@@ -144,7 +144,7 @@ def reverse_order(token_list, reverse=True):
 def save_clean_data(path, pairs, filename):
     path_to_dir = os.path.join(path, filename)
     dump(pairs, open(path_to_dir, 'wb'))
-    print('Saved: %s' % filename)
+    print('File %s saved in %s' % (filename, path_to_dir))
 
 def load_cleaned_data(path, filename):
     path_to_file = os.path.join(path, filename)

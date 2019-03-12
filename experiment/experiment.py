@@ -108,15 +108,6 @@ def run_experiment(src_voc, tar_voc, model, optimizer, num_epochs,train_iteratio
 
     best_valid_loss = -1
 
-    # Load batches for each iteration
-    training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_set) for _ in range(train_batch_size)])
-                        for _ in range(train_iteration)]
-    #print(len(training_batches))
-
-    # Load batches for each iteration
-    val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(eval_set) for _ in range(val_batch_size)])
-                   for _ in range(val_iteration)]
-
     save_dir = os.path.join(path_to_root, SAVE_DIR)
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)

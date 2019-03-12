@@ -86,6 +86,7 @@ class Tokenizer(object):
         self.is_source = is_source
 
     def index_from_sentences(self, sentence, append_SOS=True, append_EOS =True):
+        #SOS for source sentences is meaningful when sentence is reversed or if we use a bidirectional cell
         idx = []
         if append_SOS:
             idx.append(SOS_idx)
@@ -120,8 +121,8 @@ class NMTDataset(Dataset):
     def __getitem__(self, idx):
         src_sent = self.src_sents[idx]
         trg_sent = self.trg_sents[idx]
-        sent2tensor_src = self.src_tokenizer.index_from_sentences(self.src_tokenizer.vocab, src_sent, False, True)
-        sent2tensor_trg = self.trg_tokenizer.index_from_sentences(self.trg_tokenizer.vocab, trg_sent, False, True)
+        sent2tensor_src = self.src_tokenizer.index_from_sentences(src_sent, False, True)
+        sent2tensor_trg = self.trg_tokenizer.index_from_sentences(trg_sent, False, True)
         return src_sent, trg_sent, sent2tensor_src, sent2tensor_trg
 
     def reverse_src_sents(self):
