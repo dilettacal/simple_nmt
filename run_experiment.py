@@ -94,7 +94,7 @@ if __name__ == '__main__':
     INPUT_DIM = src_tokenizer.vocab.num_words
     OUTPUT_DIM = trg_tokenizer.vocab.num_words
     EMBEDDING_DIMENSION = 256
-    HIDDEN_SIZE = 512
+    HIDDEN_SIZE = 256
     N_LAYERS = 1
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0
