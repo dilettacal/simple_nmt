@@ -205,6 +205,8 @@ def collate_fn(data):
         for i, seq in enumerate(seqs):
             end = lens[i]
             padded_seqs[i, :end] = torch.LongTensor(seq[:end])
+        #Sorting lengths for pad_pack_sequence
+        lens = sorted(lens, reverse=True)
         return padded_seqs, lens
 
     # Sort a list by *source* sequence length (descending order) to use `pack_padded_sequence`.

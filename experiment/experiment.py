@@ -24,22 +24,49 @@ def train(model, train_batches, optimizer, criterion, clip, teacher_force_ratio)
     epoch_loss = 0
 
     for i, batch in enumerate(train_batches):
+        """
+        Due to collate_fn each batch returns src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens
+        For example:
+        (('we did not get far',), 
+        
+        ('wir sind nicht sehr weit gekommen',), 
+        
+        tensor([[175],
+        [115],
+        [ 97],
+        [ 52],
+        [266],
+        [  2]]), 
+        
+        tensor([[ 165],
+        [ 351],
+        [  69],
+        [1180],
+        [ 503],
+        [ 327],
+        [   2]]), [6], [7])
+        
+        """
+        src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens = batch
 
-        src, src_lengths, trg, trg_lengths, trg_max_len = batch
         #Debug information
         #src shape [max_len, batch_size]
         #trg_shape [max_len, batch_size]
-        start_src = src.shape
-        start_trg = trg.shape
+        #torch.Size([13, 24])
+        # torch.Size([15, 24])
 
-        src = src.to(device)
-        trg = trg.to(device)
+        src = src_seqs.to(device)
+        trg = tgt_seqs.to(device)
 
         optimizer.zero_grad()
+        print("SOurce lenghts", src_lens)
 
-        output = model(src, trg, teacher_force_ratio,src_lengths)
+        output = model(src, trg, teacher_force_ratio,src_lens)
         output = output.to(device)
-        raw_o = output
+
+        print("Model output shape")
+        print(output.shape)
+        exit()
 
         # trg = [trg sent len, batch size]
         # output = [trg sent len, batch size, output dim]
@@ -102,9 +129,7 @@ def evaluate_input(input):
     pass
 
 
-def run_experiment(src_voc, tar_voc, model, optimizer, num_epochs,train_iteration, val_iteration,criterion, clip,
-                   train_set, eval_set, train_batch_size,
-                   val_batch_size, teacher_forcing_ratio=0.3):
+def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, teacher_forcing_ratio=0.3):
 
     best_valid_loss = -1
 
@@ -115,9 +140,9 @@ def run_experiment(src_voc, tar_voc, model, optimizer, num_epochs,train_iteratio
     for epoch in range(num_epochs):
         start_time = time.time()
         print("Computing train loss...")
-        train_loss = train(model, training_batches, optimizer, criterion, clip, teacher_force_ratio=teacher_forcing_ratio)
+        train_loss = train(model, train_iter, optimizer, criterion, clip, teacher_force_ratio=teacher_forcing_ratio)
         print("Computing validation loss....")
-        valid_loss = evaluate(model, val_batches, criterion)
+        valid_loss = evaluate(model, val_iter, criterion)
 
         end_time = time.time()
 
@@ -126,8 +151,9 @@ def run_experiment(src_voc, tar_voc, model, optimizer, num_epochs,train_iteratio
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), save_dir)
+            print("Model saved!")
 
-        print(f'| Epoch: {epoch + 1:03} | Time: {epoch_mins}m {epoch_secs}s| Train Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f} | Val. Loss: {valid_loss:.3f} | Val. PPL: {math.exp(valid_loss):7.3f} |')
+        print(f'| Epoch: {epoch + 1:03} | Time: {epoch_mins}m {epoch_secs}s| Train Loss: {train_loss:.3f} |  Val. Loss: {valid_loss:.3f} |')
 
 
 

@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     BATCH_SIZE = 24
 
-    print("Building dataloaders. Batch size: %s", BATCH_SIZE)
+    print("Building dataloaders. Batch size: %s" %BATCH_SIZE)
 
     train_iter = DataLoader(dataset=dataset.train,
                             batch_size=BATCH_SIZE,
@@ -86,7 +86,6 @@ if __name__ == '__main__':
     #test_iter: array with (src_sent), (trg_sent), [tensor([14]), tensor([35]), tensor([2126]), tensor([76]), tensor([177]), tensor([2126]), tensor([2])]...
 
     #src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens = batch
-
 
     print("Set up the model...")
     # Configure models
@@ -110,13 +109,21 @@ if __name__ == '__main__':
 
     print(f'The model has {count_parameters(model):,} trainable parameters')
 
+
     optimizer = optim.Adam(model.parameters())
     criterion = nn.CrossEntropyLoss(ignore_index=0)
 
+    print("Optimizer:")
+    print(optimizer)
+    print("Loss criterion:")
+    print(criterion)
+    print("Optimizer:")
+    print(optimizer)
+
 
     print("Starting experiment...")
-    run_experiment(src_voc=src_tokenizer.vocab, tar_voc=trg_tokenizer.vocab, model=model, optimizer=optimizer, num_epochs=EPOCHS, criterion=criterion,
-                   train_set=train_set, eval_set=test_set, train_batch_size=BATCH_SIZE, val_batch_size=BATCH_SIZE, clip=10., teacher_forcing_ratio=0.2, train_iteration = train_n_iterations, val_iteration=val_n_iterations)
+    run_experiment(model=model, optimizer=optimizer, num_epochs=EPOCHS, criterion=criterion,
+                   train_iter= train_iter, val_iter=test_iter, clip=10., teacher_forcing_ratio=0.2)
 
 
 
