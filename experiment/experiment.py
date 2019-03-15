@@ -119,7 +119,7 @@ def evaluate_input(input):
     pass
 
 
-def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, src_vocab, trg_vocab, teacher_forcing_ratio=0.3):
+def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, src_vocab, trg_vocab, model_name = "checkpoint", teacher_forcing_ratio=0.3):
 
     best_valid_loss = float('inf')
     file = None
@@ -147,29 +147,7 @@ def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val
             directory = os.path.join(SAVE_DIR, datetime.datetime.today().strftime('%Y%m%d'))
             if not os.path.isdir(directory):
                 os.makedirs(directory)
-            file = os.path.join(directory, "{}_{}.tar".format(epoch+1, 'checkpoint'))
-
-            print("Model overview:")
-            for var_name in model.encoder.state_dict():
-                print(var_name, "\t", model.encoder.state_dict()[var_name].size())
-            for var_name in model.decoder.state_dict():
-                print(var_name, "\t", model.decoder.state_dict()[var_name].size())
-
-            #print(file)
-            states_for_testing = {
-                'epoch': epoch + 1,
-                'encoder': model.encoder.state_dict(),
-                'decoder': model.decoder.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'loss': valid_loss
-            }
-
-            states_for_inference = {
-                'encoder': model.encoder.state_dict(),
-                'decoder': model.decoder.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'criterion': criterion.state_dict()
-            }
+            file = os.path.join(directory, "{}_{}.tar".format(epoch+1, model_name))
 
             states = {
                 'epoch': epoch+1,
@@ -177,6 +155,8 @@ def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val
                 'model': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
                 'criterion': criterion.state_dict(),
+                'src_vocab': src_vocab,
+                'trg_vocab': trg_vocab
             }
 
             torch.save(states, file)

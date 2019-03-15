@@ -49,16 +49,10 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
 
 def train_split(pairs, train_ratio=0.80):
     num_data = len(pairs)
-   # shuffle(pairs)
-
     train_size = int(train_ratio * num_data)
-    split_size = num_data - train_size # 20%
-    val_size = test_size = int(split_size/2)
-
-
-    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(pairs, [train_size, val_size, test_size])
-
-    return train_dataset, val_dataset, test_dataset
+    val_size = num_data - train_size # 20
+    train_dataset, val_dataset = torch.utils.data.random_split(pairs, [train_size, val_size])
+    return train_dataset, val_dataset
 
 
 ### train / testing utils
