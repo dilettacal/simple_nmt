@@ -2,7 +2,8 @@ import itertools
 import random
 
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, SubsetRandomSampler, Subset
+import numpy as np
 
 PAD_token = "<PAD>"
 SOS_token = "<SOS>"
@@ -137,13 +138,14 @@ class NMTDataset(Dataset):
         self.src_tokenizer.is_source = True
         self.trg_tokenizer.is_source = False
 
-    def set_split(self, name, pairs):
+    def set_split(self, name, sampler:SubsetRandomSampler):
+        idx = sampler.indices
         if name=="train":
-            self.train = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
+            self.train = NMTDataset(Subset(self.pairs, idx), self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
         elif name == "val":
-            self.val = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
+            self.val = NMTDataset(Subset(self.pairs, idx), self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
         elif name =="test":
-            self.test = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
+            self.test = NMTDataset(Subset(self.pairs, idx), self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
 
     def get_overview(self, sub_set, quantity=5):
         overview = []

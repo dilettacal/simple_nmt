@@ -60,10 +60,12 @@ if __name__ == '__main__':
     print(dataset.__getitem__(50))
 
     print("Preparing dataset splits...")
-    train_set, val_set, test_set = train_split(pairs)
-    dataset.set_split('train', train_set)
-    dataset.set_split('val', val_set)
-    dataset.set_split('test', test_set)
+    train_sampler, val_sampler, test_sampler = train_split(pairs)
+    print(train_sampler.indices)
+
+    dataset.set_split('train', train_sampler)
+    dataset.set_split('val', val_sampler)
+    dataset.set_split('test', test_sampler)
 
     print("Total train samples:", dataset.train.__len__())
     print("Total validation samples:", dataset.val.__len__())
@@ -76,24 +78,24 @@ if __name__ == '__main__':
     print(dataset.get_overview(dataset.train))
 
     print("Persisting splittings...")
-    save_clean_data(PREPRO_DIR, train_set, filename="train.pkl")
-    save_clean_data(PREPRO_DIR, val_set, filename="val.pkl")
-    save_clean_data(PREPRO_DIR, test_set, filename="test.pkl")
+    save_clean_data(PREPRO_DIR, train_sampler, filename="train.pkl")
+    save_clean_data(PREPRO_DIR, val_sampler, filename="val.pkl")
+    save_clean_data(PREPRO_DIR, test_sampler, filename="test.pkl")
 
     BATCH_SIZE = 128
 
     print("Building dataloaders. Batch size: %s" %BATCH_SIZE)
 
-    train_iter = DataLoader(dataset=dataset.train,
+    train_iter = DataLoader(dataset=dataset,
                             batch_size=BATCH_SIZE,
-                            shuffle=True,
-                            #num_workers=4,
+                            shuffle=False, #if sampler in use, shuffle must be False
+                            sampler=train_sampler,
                             collate_fn=collate_fn)
 
 
-    val_iter = DataLoader(dataset=dataset.val, batch_size=1, shuffle=False, collate_fn=collate_fn)
+    val_iter = DataLoader(dataset=dataset, batch_size=1, sampler=val_sampler, shuffle=False, collate_fn=collate_fn)
 
-    test_iter = DataLoader(dataset=dataset.test, batch_size=1, shuffle=False, collate_fn=collate_fn)
+    test_iter = DataLoader(dataset=dataset, batch_size=1, sampler=test_sampler, shuffle=False, collate_fn=collate_fn)
 
     print("Set up the model...")
     # Configure models

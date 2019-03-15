@@ -1,5 +1,7 @@
-from numpy.random import shuffle
+import numpy as np
 import torch
+from torch.utils.data import SubsetRandomSampler
+
 from global_settings import device
 
 # Practical PyTorch and PyTorch Tutorials
@@ -47,12 +49,31 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
     return pairs
 
 
-def train_split(pairs, train_ratio=0.80):
+def train_split(pairs, test_ratio=0.2):
     num_data = len(pairs)
-    train_size = int(train_ratio * num_data)
-    val_size = num_data - train_size # 20
-    train_dataset, val_dataset = torch.utils.data.random_split(pairs, [train_size, val_size])
-    return train_dataset, val_dataset
+    indices = list(range(num_data))
+
+    # Randomly splitting indices:
+    val_len = int(np.floor(test_ratio*num_data))
+    val_idx = np.random.choice(indices, size=val_len, replace=False)
+
+    test_len = int(val_len*0.50)
+    test_idx = np.random.choice(val_idx, size=test_len, replace=False)
+
+    val_idx = list(set(val_idx) - set(test_idx))
+
+    train_idx = list(set(indices) - set(val_idx))
+
+    print( len(val_idx) + len(train_idx) + len(test_idx))
+
+    train_sampler = SubsetRandomSampler(train_idx)
+    validation_sampler = SubsetRandomSampler(val_idx)
+    test_sampler = SubsetRandomSampler(test_idx)
+
+   # train_size = int(train_ratio * num_data)
+   # val_size = num_data - train_size # 20
+   # train_dataset, val_dataset = torch.utils.data.random_split(pairs, [train_size, val_size])
+    return train_sampler, validation_sampler, test_sampler
 
 
 ### train / testing utils
