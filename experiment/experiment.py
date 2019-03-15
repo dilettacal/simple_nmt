@@ -119,21 +119,26 @@ def evaluate(model, dataset_iterator, criterion):
 
 
 def predict_sentence(model, src_tokenizer, trg_tokenizer, searcher, sentence):
-    ### Format input sentence as a batch
-    # words -> indexes
-    indexes_batch = [src_tokenizer.index_from_sentences(sentence, append_EOS=True, append_SOS=False)]
-    # Create lengths tensor
-    lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
-    # Transpose dimensions of batch to match models' expectations
-    input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
-    # Use appropriate device
-    input_batch = input_batch.to(device)
-    lengths = lengths.to(device)
-    # Decode sentence with searcher
-    tokens, scores = searcher(input_batch, lengths)
-    # indexes -> words
-    decoded_words = [trg_tokenizer.sentence_from_idx[token.item()] for token in tokens]
-    return decoded_words
+
+    with torch.no_grad():
+        ### Format input sentence as a batch
+        # words -> indexes
+        indexes_batch = [src_tokenizer.index_from_sentences(sentence, append_EOS=True, append_SOS=False)]
+        # Create lengths tensor
+        lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
+        # Transpose dimensions of batch to match models' expectations
+        input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
+        # Use appropriate device
+        input_batch = input_batch.to(device)
+        lengths = lengths.to(device)
+        if searcher:
+            # Decode sentence with searcher
+            tokens, scores = searcher(input_batch, lengths)
+        else:
+
+        # indexes -> words
+        decoded_words = [trg_tokenizer.sentence_from_idx[token.item()] for token in tokens]
+        return decoded_words
 
 
 def evaluateInput(model, searcher,  src_tokenizer, trg_tokenizer, src_lang = "eng"):
