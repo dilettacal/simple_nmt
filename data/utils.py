@@ -47,17 +47,18 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
     return pairs
 
 
-def train_split(pairs, test_ratio=0.10):
-    #TODO: Also validation set!
-
+def train_split(pairs, train_ratio=0.80):
     num_data = len(pairs)
-    shuffle(pairs)
-    print(pairs[:1])
-    train_idx = int(num_data*(1-test_ratio))
-    print(train_idx)
-    train_set = pairs[:train_idx]
-    test_set = pairs[train_idx:]
-    return train_set, test_set
+   # shuffle(pairs)
+
+    train_size = int(train_ratio * num_data)
+    split_size = num_data - train_size # 20%
+    val_size = test_size = int(split_size/2)
+
+
+    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(pairs, [train_size, val_size, test_size])
+
+    return train_dataset, val_dataset, test_dataset
 
 
 ### train / testing utils

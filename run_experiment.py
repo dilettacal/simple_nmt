@@ -60,12 +60,22 @@ if __name__ == '__main__':
     print(dataset.__getitem__(50))
 
     print("Preparing dataset splits...")
-    train_set, test_set = train_split(pairs)
+    train_set, val_set, test_set = train_split(pairs)
     dataset.set_split('train', train_set)
+    dataset.set_split('val', val_set)
     dataset.set_split('test', test_set)
 
     print("Total train samples:", dataset.train.__len__())
-    print("Total validation samples:", dataset.test.__len__())
+    print("Total validation samples:", dataset.val.__len__())
+    print("Total test samples:", dataset.test.__len__())
+
+    print("Overview:")
+
+    print(dataset.get_overview(dataset.train))
+    print(dataset.get_overview(dataset.val))
+    print(dataset.get_overview(dataset.train))
+
+    exit()
 
     print("Persisting splittings...")
     save_clean_data(PREPRO_DIR, train_set, filename="train.pkl")

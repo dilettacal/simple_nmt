@@ -1,4 +1,5 @@
 import itertools
+import random
 
 import torch
 from torch.utils.data import Dataset
@@ -143,6 +144,13 @@ class NMTDataset(Dataset):
             self.val = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
         elif name =="test":
             self.test = NMTDataset(pairs, self.src_lang, self.trg_lang, self.src_tokenizer, self.trg_tokenizer)
+
+    def get_overview(self, sub_set, quantity=5):
+        overview = []
+        for i in range(quantity):
+            overview.append(random.choice(sub_set))
+        return overview
+
 
 
 #### Vectorization methods #####
