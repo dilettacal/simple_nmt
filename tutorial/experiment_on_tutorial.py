@@ -71,7 +71,7 @@ if __name__ == '__main__':
     dropout = 0.1
     batch_size = 64
 
-    # Set checkpoint to load from; set to None if starting from scratch
+    # Set checkpoints to load from; set to None if starting from scratch
     loadFilename = None
     checkpoint_iter = 4000
     if os.path.isfile(os.path.join(SAVE_DIR, model_name, FILENAME,
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         # If loading on same machine the model was trained on
         checkpoint = torch.load(loadFilename)
         # If loading a model trained on GPU to CPU
-        # checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
+        # checkpoints = torch.load(loadFilename, map_location=torch.device('cpu'))
         encoder_sd = checkpoint['en']
         decoder_sd = checkpoint['de']
         encoder_optimizer_sd = checkpoint['en_opt']

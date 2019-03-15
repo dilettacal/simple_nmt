@@ -208,7 +208,7 @@ def run_experiment(model_name, src_voc, tar_voc, encoder, decoder,
         if val_loss < best_valid_loss:
             best_valid_loss = print_val_loss_avg
 
-        # Save checkpoint
+        # Save checkpoints
         if (iteration % save_every == 0):
             directory = os.path.join(save_dir, model_name, corpus_name,
                                      '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
@@ -225,7 +225,7 @@ def run_experiment(model_name, src_voc, tar_voc, encoder, decoder,
                 'tar_dict': tar_voc.__dict__,
                 'src_embedding': src_embedding.state_dict(),
                 'trg_embedding': trg_embedding.state_dict()
-            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
+            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoints')))
 
 
 

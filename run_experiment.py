@@ -17,7 +17,7 @@ if __name__ == '__main__':
     trg_lang = "deu"
     exp_contraction = True
     src_reversed = False
-    limit = None
+    limit = 10000
 
     start_root = "."
     pairs = read_lines(os.path.join(start_root, DATA_DIR), FILENAME)

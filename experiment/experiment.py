@@ -139,7 +139,9 @@ def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
-            torch.save(model.state_dict(), SAVE_DIR)
+            print(SAVE_DIR)
+
+            torch.save(model.state_dict(), os.path.join(SAVE_DIR, "{}_{}.tar".format(epoch+1, 'checkpoint')))
             print("Model saved!")
 
         print(f'| Epoch: {epoch + 1:03} | Time: {epoch_mins}m {epoch_secs}s| Train Loss: {train_loss:.3f} |  Val. Loss: {valid_loss:.3f} |')

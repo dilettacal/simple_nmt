@@ -1422,8 +1422,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 # One thing to note is that when we save our model, we save a tarball
 # containing the encoder and decoder state_dicts (parameters), the
 # optimizers’ state_dicts, the loss, the iteration, etc. Saving the model
-# in this way will give us the ultimate flexibility with the checkpoint.
-# After loading a checkpoint, we will be able to use the model parameters
+# in this way will give us the ultimate flexibility with the checkpoints.
+# After loading a checkpoints, we will be able to use the model parameters
 # to run inference, or we can continue training right where we left off.
 # 
 # 
@@ -1463,7 +1463,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
             print("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(iteration, iteration / n_iteration * 100, print_loss_avg))
             print_loss = 0
 
-        # Save checkpoint
+        # Save checkpoints
         if (iteration % save_every == 0):
             directory = os.path.join(save_dir, model_name, corpus_name, '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
             if not os.path.exists(directory):
@@ -1477,7 +1477,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
                 'loss': loss,
                 'voc_dict': voc.__dict__,
                 'embedding': embedding.state_dict()
-            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
+            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoints')))
 
 
 # Define Evaluation
@@ -1632,7 +1632,7 @@ def evaluateInput(encoder, decoder, searcher, voc):
 # Regardless of whether we want to train or test the chatbot model, we
 # must initialize the individual encoder and decoder models. In the
 # following block, we set our desired configurations, choose to start from
-# scratch or set a checkpoint to load from, and build and initialize the
+# scratch or set a checkpoints to load from, and build and initialize the
 # models. Feel free to play with different model configurations to
 # optimize performance.
 # 
@@ -1653,7 +1653,7 @@ decoder_n_layers = 2
 dropout = 0.1
 batch_size = 64
 
-# Set checkpoint to load from; set to None if starting from scratch
+# Set checkpoints to load from; set to None if starting from scratch
 loadFilename = None
 checkpoint_iter = 4000
 #loadFilename = os.path.join(save_dir, model_name, corpus_name,
@@ -1666,7 +1666,7 @@ if loadFilename:
     # If loading on same machine the model was trained on
     checkpoint = torch.load(loadFilename)
     # If loading a model trained on GPU to CPU
-    #checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
+    #checkpoints = torch.load(loadFilename, map_location=torch.device('cpu'))
     encoder_sd = checkpoint['en']
     decoder_sd = checkpoint['de']
     encoder_optimizer_sd = checkpoint['en_opt']
