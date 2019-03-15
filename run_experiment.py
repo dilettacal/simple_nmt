@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     print("Preparing dataset splits...")
     train_sampler, val_sampler, test_sampler = train_split(pairs)
-    print(train_sampler.indices)
+    #print(train_sampler.indices)
 
     dataset.set_split('train', train_sampler)
     dataset.set_split('val', val_sampler)
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     N_LAYERS = 1
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0
-    EPOCHS = 8
+    EPOCHS = 1
 
     enc = EncoderLSTM(vocab_size=INPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=ENC_DROPOUT)
     dec = DecoderLSTM(vocab_size=OUTPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=DEC_DROPOUT)

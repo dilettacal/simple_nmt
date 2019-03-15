@@ -50,29 +50,21 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
 
 
 def train_split(pairs, test_ratio=0.2):
+    print("Splitting data....")
     num_data = len(pairs)
     indices = list(range(num_data))
 
     # Randomly splitting indices:
     val_len = int(np.floor(test_ratio*num_data))
-    val_idx = np.random.choice(indices, size=val_len, replace=False)
-
-    test_len = int(val_len*0.50)
-    test_idx = np.random.choice(val_idx, size=test_len, replace=False)
-
-    val_idx = list(set(val_idx) - set(test_idx))
-
+    val_idx = np.random.choice(indices, size=val_len, replace=False) #test_Ratio %
     train_idx = list(set(indices) - set(val_idx))
-
-    print( len(val_idx) + len(train_idx) + len(test_idx))
+    idx_range = int(len(val_idx)/2)
 
     train_sampler = SubsetRandomSampler(train_idx)
-    validation_sampler = SubsetRandomSampler(val_idx)
-    test_sampler = SubsetRandomSampler(test_idx)
+    validation_sampler = SubsetRandomSampler(val_idx[:idx_range])
+    test_sampler = SubsetRandomSampler(val_idx[idx_range:])
 
-   # train_size = int(train_ratio * num_data)
-   # val_size = num_data - train_size # 20
-   # train_dataset, val_dataset = torch.utils.data.random_split(pairs, [train_size, val_size])
+    #print(len(train_sampler) + len(validation_sampler) + len(test_sampler)) #should be the same as num_data
     return train_sampler, validation_sampler, test_sampler
 
 
