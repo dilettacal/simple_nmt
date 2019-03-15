@@ -9,7 +9,7 @@ from data.tokenize import Vocab, NMTDataset, Tokenizer, collate_fn
 from data.utils import train_split
 from global_settings import FILENAME, DATA_DIR, device
 from model.nmtmodel import NMTModel, count_parameters, EncoderLSTM, DecoderLSTM
-from experiment.experiment import run_experiment
+from experiment.experiment import run_experiment, evaluate
 
 if __name__ == '__main__':
 
@@ -75,10 +75,9 @@ if __name__ == '__main__':
     print(dataset.get_overview(dataset.val))
     print(dataset.get_overview(dataset.train))
 
-    exit()
-
     print("Persisting splittings...")
     save_clean_data(PREPRO_DIR, train_set, filename="train.pkl")
+    save_clean_data(PREPRO_DIR, val_set, filename="val.pkl")
     save_clean_data(PREPRO_DIR, test_set, filename="test.pkl")
 
     BATCH_SIZE = 128
@@ -92,10 +91,9 @@ if __name__ == '__main__':
                             collate_fn=collate_fn)
 
 
-    test_iter = DataLoader(dataset=dataset.test, batch_size=1, shuffle=False, collate_fn=collate_fn)
-    #test_iter: array with (src_sent), (trg_sent), [tensor([14]), tensor([35]), tensor([2126]), tensor([76]), tensor([177]), tensor([2126]), tensor([2])]...
+    val_iter = DataLoader(dataset=dataset.val, batch_size=1, shuffle=False, collate_fn=collate_fn)
 
-    #src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens = batch
+    test_iter = DataLoader(dataset=dataset.test, batch_size=1, shuffle=False, collate_fn=collate_fn)
 
     print("Set up the model...")
     # Configure models
@@ -108,7 +106,7 @@ if __name__ == '__main__':
     N_LAYERS = 1
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0
-    EPOCHS = 5
+    EPOCHS = 1
 
     enc = EncoderLSTM(vocab_size=INPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=ENC_DROPOUT)
     dec = DecoderLSTM(vocab_size=OUTPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=DEC_DROPOUT)
@@ -132,8 +130,19 @@ if __name__ == '__main__':
 
 
     print("Starting experiment...")
-    run_experiment(model=model, optimizer=optimizer, num_epochs=EPOCHS, criterion=criterion,
-                   train_iter= train_iter, val_iter=test_iter, clip=10., teacher_forcing_ratio=0.2)
+    file, directory = run_experiment(model=model, optimizer=optimizer, num_epochs=EPOCHS, criterion=criterion,
+                                     train_iter= train_iter, val_iter=val_iter, clip=10., src_vocab=src_tokenizer.vocab,
+                                     trg_vocab=trg_tokenizer.vocab, teacher_forcing_ratio=0.2)
+
+
+    if file:
+        print("Loading model for testing on test set...")
+        checkpoint = torch.load(file)
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        criterion.load_state_dict(checkpoint['criterion'])
+        model.load_state_dict(checkpoint["model"])
+        test_loss = evaluate(model, test_iter, criterion)
+        print("Test loss:", test_loss)
 
 
 

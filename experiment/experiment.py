@@ -1,3 +1,4 @@
+import datetime
 import os
 import random
 import time
@@ -90,13 +91,13 @@ def train(model, train_batches, optimizer, criterion, clip, teacher_force_ratio)
 
 
 
-def evaluate(model, val_batches, criterion, store_path="./"):
+def evaluate(model, dataset_iterator, criterion):
     model.eval()
 
     epoch_loss = 0
 
     with torch.no_grad():
-        for i, batch in enumerate(val_batches):
+        for i, batch in enumerate(dataset_iterator):
             src_sents, tgt_sents, src_seqs, tgt_seqs, src_lens, tgt_lens = batch
 
             src_input_seqs = src_seqs.to(device)
@@ -111,16 +112,18 @@ def evaluate(model, val_batches, criterion, store_path="./"):
 
             epoch_loss += loss.item()
 
-    return epoch_loss / len(val_batches)
+    return epoch_loss / len(dataset_iterator)
 
 
 def evaluate_input(input):
     pass
 
 
-def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, teacher_forcing_ratio=0.3):
+def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, src_vocab, trg_vocab, teacher_forcing_ratio=0.3):
 
     best_valid_loss = float('inf')
+    file = None
+    directory = None
 
     save_dir = os.path.join(path_to_root, SAVE_DIR)
     if not os.path.isdir(save_dir):
@@ -133,15 +136,53 @@ def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val
         print("Computing validation loss....")
         valid_loss = evaluate(model, val_iter, criterion)
 
+        optim_dict = optimizer.state_dict() #AttributeError: 'dict' object has no attribute '_metadata'
+
         end_time = time.time()
 
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
-            print(SAVE_DIR)
+            directory = os.path.join(SAVE_DIR, datetime.datetime.today().strftime('%Y%m%d'))
+            if not os.path.isdir(directory):
+                os.makedirs(directory)
+            file = os.path.join(directory, "{}_{}.tar".format(epoch+1, 'checkpoint'))
 
-            torch.save(model.state_dict(), os.path.join(SAVE_DIR, "{}_{}.tar".format(epoch+1, 'checkpoint')))
+            print("Model overview:")
+            for var_name in model.encoder.state_dict():
+                print(var_name, "\t", model.encoder.state_dict()[var_name].size())
+            for var_name in model.decoder.state_dict():
+                print(var_name, "\t", model.decoder.state_dict()[var_name].size())
+
+            #print(file)
+            states_for_testing = {
+                'epoch': epoch + 1,
+                'encoder': model.encoder.state_dict(),
+                'decoder': model.decoder.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'loss': valid_loss
+            }
+
+            states_for_inference = {
+                'encoder': model.encoder.state_dict(),
+                'decoder': model.decoder.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'criterion': criterion.state_dict()
+            }
+
+            states = {
+                'epoch': epoch+1,
+                'loss': valid_loss,
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'criterion': criterion.state_dict(),
+            }
+
+            torch.save(states, file)
+
             print("Model saved!")
 
         print(f'| Epoch: {epoch + 1:03} | Time: {epoch_mins}m {epoch_secs}s| Train Loss: {train_loss:.3f} |  Val. Loss: {valid_loss:.3f} |')
+
+    return file, directory
