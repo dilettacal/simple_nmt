@@ -4,6 +4,9 @@ import random
 import time
 import math
 import torch
+
+from data.mappings import UMLAUT_MAP, ENG_CONTRACTIONS_MAP
+from data.prepro import preprocess_sentence
 from global_settings import SAVE_DIR, device
 from data.tokenize import batch2TrainData
 
@@ -115,11 +118,47 @@ def evaluate(model, dataset_iterator, criterion):
     return epoch_loss / len(dataset_iterator)
 
 
-def evaluate_input(input):
-    pass
+def predict_sentence(model, src_tokenizer, trg_tokenizer, searcher, sentence):
+    ### Format input sentence as a batch
+    # words -> indexes
+    indexes_batch = [src_tokenizer.index_from_sentences(sentence, append_EOS=True, append_SOS=False)]
+    # Create lengths tensor
+    lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
+    # Transpose dimensions of batch to match models' expectations
+    input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
+    # Use appropriate device
+    input_batch = input_batch.to(device)
+    lengths = lengths.to(device)
+    # Decode sentence with searcher
+    tokens, scores = searcher(input_batch, lengths)
+    # indexes -> words
+    decoded_words = [trg_tokenizer.sentence_from_idx[token.item()] for token in tokens]
+    return decoded_words
 
 
-def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, src_vocab, trg_vocab, model_name = "checkpoint", teacher_forcing_ratio=0.3):
+def evaluateInput(model, searcher,  src_tokenizer, trg_tokenizer, src_lang = "eng"):
+    input_sentence = ''
+    mapping = UMLAUT_MAP if src_lang == "deu" else ENG_CONTRACTIONS_MAP
+    while(1):
+        try:
+            # Get input sentence
+            input_sentence = input('> ')
+            # Check if it is quit case
+            if input_sentence == 'q' or input_sentence == 'quit': break
+            # Normalize sentence
+            input_sentence = preprocess_sentence(input_sentence, expand_contractions=mapping)
+            # Evaluate sentence
+            output_words = predict_sentence(model=model, src_tokenizer=src_tokenizer,
+                                            trg_tokenizer=trg_tokenizer, sentence=input_sentence, searcher=searcher)
+            # Format and print response sentence
+            output_words[:] = [x for x in output_words if not (x == '<EOS>' or x == '<PAD>')]
+            print('Translation:', ' '.join(output_words))
+
+        except KeyError:
+            print("Error: Encountered unknown word.")
+
+
+def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val_iter, src_tokenizer, trg_tokenizer, model_name = "checkpoint", teacher_forcing_ratio=0.3):
 
     best_valid_loss = float('inf')
     file = None
@@ -155,8 +194,10 @@ def run_experiment(model, optimizer, num_epochs,criterion, clip, train_iter, val
                 'model': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
                 'criterion': criterion.state_dict(),
-                'src_vocab': src_vocab,
-                'trg_vocab': trg_vocab
+                'src_vocab': src_tokenizer.vocab,
+                'trg_vocab': trg_tokenizer.vocab,
+                'src_tokenizer': src_tokenizer,
+                'trg_tokenizer': trg_tokenizer
             }
 
             torch.save(states, file)

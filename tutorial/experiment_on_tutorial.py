@@ -7,7 +7,7 @@ from tutorial.evaluate import GreedySearchDecoder, evaluateInput
 from tutorial.train import run_experiment
 from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device
 from data.prepro import *
-from data.utils import train_split, filter_pairs
+from tutorial.tutorial_utils import train_split
 from data.tokenize import Vocab
 from tutorial.decoder import DecoderGRU
 from tutorial.encoder import EncoderGRU
@@ -130,9 +130,9 @@ if __name__ == '__main__':
     teacher_forcing_ratio = 0.2
     learning_rate = 0.01
     decoder_learning_ratio = 5.0
-    n_iteration = 30000
-    print_every = 1000
-    save_every = 1000
+    n_iteration = 4000
+    print_every = 1
+    save_every = 500
 
     # Ensure dropout layers are in train mode
     #encoder.train()

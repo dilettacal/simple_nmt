@@ -1,3 +1,5 @@
+from random import shuffle
+
 import torch
 
 from data.tokenize import indexesFromSentence, zeroPadding, PAD_token, PAD_idx
@@ -43,3 +45,14 @@ def batch2TrainDataTutorial(src_voc, tar_voc, pair_batch):
     inp, lengths = inputVarTutorial(input_batch, src_voc)
     output, mask, max_target_len = outputVarTutorial(output_batch, tar_voc)
     return inp, lengths, output, mask, max_target_len
+
+
+def train_split(pairs, test_ratio=0.10):
+    num_data = len(pairs)
+    shuffle(pairs)
+    print(pairs[:1])
+    train_idx = int(num_data*(1-test_ratio))
+    print(train_idx)
+    train_set = pairs[:train_idx]
+    test_set = pairs[train_idx:]
+    return train_set, test_set

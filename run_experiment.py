@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     print("Set up the model...")
     # Configure models
-    model_name = 'nmt_model'
+    model_name = 'nmt_model' if limit is None else 'nmt_model_'+str(limit)
 
     INPUT_DIM = src_tokenizer.vocab.num_words
     OUTPUT_DIM = trg_tokenizer.vocab.num_words
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     N_LAYERS = 1
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0
-    EPOCHS = 1
+    EPOCHS = 8
 
     enc = EncoderLSTM(vocab_size=INPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=ENC_DROPOUT)
     dec = DecoderLSTM(vocab_size=OUTPUT_DIM, emb_dim=EMBEDDING_DIMENSION, rnn_hidden_size=HIDDEN_SIZE, n_layers=N_LAYERS, dropout=DEC_DROPOUT)
@@ -133,8 +133,8 @@ if __name__ == '__main__':
 
     print("Starting experiment...")
     file, directory = run_experiment(model=model, optimizer=optimizer, num_epochs=EPOCHS, criterion=criterion,
-                                     train_iter= train_iter, val_iter=val_iter, clip=10., src_vocab=src_tokenizer.vocab,
-                                     trg_vocab=trg_tokenizer.vocab, model_name=model_name, teacher_forcing_ratio=0.2)
+                                     train_iter= train_iter, val_iter=val_iter, clip=10., src_tokenizer=src_tokenizer,
+                                     trg_tokenizer=trg_tokenizer, model_name=model_name, teacher_forcing_ratio=0.2)
 
 
     if file:
