@@ -45,8 +45,8 @@ if __name__ == '__main__':
     # Configure models
     model_name = 'simple_nmt_model'
     hidden_size = 256
-    encoder_n_layers = 2
-    decoder_n_layers = 2
+    encoder_n_layers = 1
+    decoder_n_layers = 1
     dropout = 0.1
     batch_size = 64
 
@@ -80,14 +80,15 @@ if __name__ == '__main__':
     if loadFilename:
         src_emb.load_state_dict(src_embed)
         trg_emb.load_state_dict(trg_embed)
+
     # Initialize encoder & decoder models
     encoder = EncoderGRU(hidden_size, src_emb, encoder_n_layers, dropout)
-    # decoder = LuongAttnDecoderRNN(attn_model, embedding, hidden_size, voc.num_words, decoder_n_layers, dropout)
     decoder = DecoderGRU(trg_emb, hidden_size, output_lang.num_words, decoder_n_layers, dropout)
 
     if loadFilename:
         encoder.load_state_dict(encoder_sd)
         decoder.load_state_dict(decoder_sd)
+
     # Use appropriate device
     encoder = encoder.to(device)
     decoder = decoder.to(device)
@@ -101,7 +102,7 @@ if __name__ == '__main__':
     teacher_forcing_ratio = 0.3
     learning_rate = 0.0001
     decoder_learning_ratio = 5.0
-    n_iteration = 100
+    n_iteration = 10000
     print_every = 100
     save_every = 500
 

@@ -8,13 +8,18 @@ SOS_token = 1  # Start-of-sentence token
 EOS_token = 2  # End-of-sentence token
 UNK_token = 3 # Unknown token, no Key Error thrown
 
+PAD = "<PAD>"
+SOS = "<SOS>"
+EOS = "<EOS>"
+UNK = "<UNK>"
+
 class Voc:
     def __init__(self, name):
         self.name = name
         self.trimmed = False
         self.word2index = {}
         self.word2count = {}
-        self.index2word = {PAD_token: "PAD", SOS_token: "SOS", EOS_token: "EOS", UNK_token:"UNK"}
+        self.index2word = {PAD_token: PAD, SOS_token: SOS, EOS_token: EOS, UNK_token:UNK}
         self.num_words = 4  # Count SOS, EOS, PAD
 
     def addSentence(self, sentence):
@@ -49,7 +54,7 @@ class Voc:
         # Reinitialize dictionaries
         self.word2index = {}
         self.word2count = {}
-        self.index2word = {PAD_token: "PAD", SOS_token: "SOS", EOS_token: "EOS",UNK_token:"UNK"}
+        self.index2word = {PAD_token: PAD, SOS_token: SOS, EOS_token: EOS, UNK_token: UNK}
         self.num_words = 4 # Count default tokens
 
         for word in keep_words:
@@ -134,8 +139,6 @@ def outputVar(l, voc):
 
 # Returns all items for a given batch of pairs
 def batch2TrainData(src_voc, tar_voc, pair_batch):
-    print(type(pair_batch))
-    print(pair_batch[0])
     pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
     input_batch, output_batch = [], []
     for pair in pair_batch:

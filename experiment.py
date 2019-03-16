@@ -7,7 +7,7 @@ from global_settings import device, MAX_LENGTH
 import torch
 
 from utils.prepro import preprocess_sentence
-from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence
+from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD
 from utils.utils import maskNLLLoss
 
 
@@ -122,7 +122,7 @@ def trainIters(model_name, src_voc, tar_voc, pairs, encoder, decoder,
 
         # Save checkpoint
         if (iteration % save_every == 0):
-            directory = os.path.join(save_dir, model_name, corpus_name, '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
+            directory = os.path.join(save_dir, model_name, corpus_name, '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, encoder.hidden_size))
             if not os.path.exists(directory):
                 os.makedirs(directory)
             torch.save({
@@ -172,7 +172,7 @@ class GreedySearchDecoder(nn.Module):
 
 ############# Evaluation ################
 
-def evaluate(encoder, decoder, searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
+def evaluate(searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
     ### Format input sentence as a batch
     # words -> indexes
     indexes_batch = [indexesFromSentence(src_voc, sentence)]
@@ -203,10 +203,13 @@ def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
             # Normalize sentence
             input_sentence = preprocess_sentence(input_sentence)
             # Evaluate sentence
-            output_words = evaluate(encoder, decoder, searcher, src_voc, trg_voc, input_sentence)
+            output_words = evaluate(searcher, src_voc, trg_voc, input_sentence)
             # Format and print response sentence
-            output_words[:] = [x for x in output_words if not (x == 'EOS' or x == 'PAD')]
-            print('Translation:', ' '.join(output_words))
+            output_words[:] = [x for x in output_words if not (x == EOS or x == PAD)]
+            if output_words:
+                print('Translation:', ' '.join(output_words))
+            else:
+                print("No translation found!")
 
         except KeyError:
             print("Error: Encountered unknown word.")

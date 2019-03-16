@@ -49,25 +49,6 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
     return pairs
 
 
-def train_split(pairs, test_ratio=0.2):
-    print("Splitting data....")
-    num_data = len(pairs)
-    indices = list(range(num_data))
-
-    # Randomly splitting indices:
-    val_len = int(np.floor(test_ratio*num_data))
-    val_idx = np.random.choice(indices, size=val_len, replace=False) #test_Ratio %
-    train_idx = list(set(indices) - set(val_idx))
-    idx_range = int(len(val_idx)/2)
-
-    train_sampler = SubsetRandomSampler(train_idx)
-    validation_sampler = SubsetRandomSampler(val_idx[:idx_range])
-    test_sampler = SubsetRandomSampler(val_idx[idx_range:])
-
-    #print(len(train_sampler) + len(validation_sampler) + len(test_sampler)) #should be the same as num_data
-    return train_sampler, validation_sampler, test_sampler
-
-
 ### train / testing utils
 
 def maskNLLLoss(inp, target, mask):
