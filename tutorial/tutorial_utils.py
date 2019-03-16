@@ -2,7 +2,7 @@ from random import shuffle
 
 import torch
 
-from data.tokenize import indexesFromSentence, zeroPadding, PAD_token, PAD_idx
+from utils.tokenize import indexesFromSentence, zeroPadding, PAD_token, PAD_idx
 
 
 def inputVarTutorial(l, voc):

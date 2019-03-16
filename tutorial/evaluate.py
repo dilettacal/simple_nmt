@@ -2,9 +2,9 @@
 import torch
 import torch.nn as nn
 
-from data.prepro import preprocess_sentence
+from utils.prepro import preprocess_sentence
 from global_settings import device, MAX_LENGTH
-from data.tokenize import SOS_idx, indexesFromSentence, EOS_token, SOS_token, PAD_token
+from utils.tokenize import SOS_idx, indexesFromSentence, EOS_token, PAD_token
 
 
 """

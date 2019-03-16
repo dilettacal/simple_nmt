@@ -4,9 +4,9 @@ import random
 import torch
 from torch.utils import checkpoint
 
-from data.utils import maskNLLLoss
+from utils.utils import maskNLLLoss
 from global_settings import  device
-from data.tokenize import SOS_idx
+from utils.tokenize import SOS_idx
 from tutorial.tutorial_utils import batch2TrainDataTutorial
 
 

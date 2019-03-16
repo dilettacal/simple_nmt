@@ -5,8 +5,8 @@ import unicodedata
 import re
 from pickle import dump, load
 
-from data.mappings import UMLAUT_MAP, ENG_CONTRACTIONS_MAP
-from data.tokenize import SOS_token, EOS_token
+from utils.mappings import UMLAUT_MAP, ENG_CONTRACTIONS_MAP
+from utils.tokenize import SOS_token, EOS_token
 from global_settings import PREPRO_DIR
 
 

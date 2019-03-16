@@ -1,4 +1,3 @@
-import argparse
 import torch
 
 from torch import nn, optim
@@ -6,9 +5,8 @@ from torch import nn, optim
 from tutorial.evaluate import GreedySearchDecoder, evaluateInput
 from tutorial.train import run_experiment
 from global_settings import FILENAME, DATA_DIR, SAVE_DIR, device
-from data.prepro import *
 from tutorial.tutorial_utils import train_split
-from data.tokenize import Vocab
+from utils.tokenize import Vocab
 from tutorial.decoder import DecoderGRU
 from tutorial.encoder import EncoderGRU
 
