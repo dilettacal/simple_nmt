@@ -10,9 +10,17 @@ from model.model import EncoderGRU, DecoderGRU
 from utils.prepro import read_lines, preprocess_pipeline
 from utils.tokenize import build_vocab
 
+from global_settings import DATA_DIR
+
+
+def define_model():
+    pass
+
+def run_experiment():
+    pass
+
 if __name__ == '__main__':
 
-    from global_settings import DATA_DIR
 
     src_lang = "eng"
     trg_lang = "deu"
@@ -81,7 +89,7 @@ if __name__ == '__main__':
     # Initialize encoder & decoder models
     encoder = EncoderGRU(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
                          n_layers=encoder_n_layers, dropout=dropout)
-    decoder = DecoderGRU(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers, dropout=dropout)
+    decoder = DecoderGRU(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers)
 
     if loadFilename:
         src_emb = encoder.embedding

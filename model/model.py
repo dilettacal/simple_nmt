@@ -51,30 +51,28 @@ class EncoderGRU(nn.Module):
 
 
 
-
 class DecoderGRU(nn.Module):
-    def __init__(self, output_size, emb_size, hidden_size, n_layers=1, dropout=0.1):
+    def __init__(self, output_size, emb_size, hidden_size, n_layers=1):
         super(DecoderGRU, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.n_layers = n_layers
-        self.dropout = dropout
 
         # Define layers
-        self.embedding = nn.Embedding(output_size, emb_size)
-        self.embedding_dropout = nn.Dropout(dropout)
-        self.gru = nn.GRU(hidden_size, hidden_size, n_layers, dropout=(0 if n_layers == 1 else dropout))
+        self.embedding = nn.Embedding(output_size, emb_size, padding_idx=0)
+        self.gru = nn.GRU(hidden_size, hidden_size, n_layers,)
 
         self.out = nn.Linear(hidden_size, output_size)
         # self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, input_step, last_hidden, encoder_outputs):
+    def forward(self, input_step, last_hidden, trg_lengths):
+        #input_step = [seq_len, batch_size]
+        #last_hidden = [seq_len, batch_size, hidden_size]
+        #embedded = [seq_len, batch_size, embedding_size]
         embedded = self.embedding(input_step)
-        embedded = self.embedding_dropout(embedded)
+
         # Forward through unidirectional GRU
         output, hidden = self.gru(embedded, last_hidden)
-        output, hidden = self.gru(output, hidden)  #
-
         # Squeeze first dimension
         output = output.squeeze(0)
         # Prediction

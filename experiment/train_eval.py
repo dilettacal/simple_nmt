@@ -11,7 +11,7 @@ from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS,
 from utils.utils import maskNLLLoss
 
 
-def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder,
+def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
           encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5):
     # Zero gradients
     encoder_optimizer.zero_grad()
@@ -22,6 +22,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     lengths = lengths.to(device)
     target_variable = target_variable.to(device)
     mask = mask.to(device)
+    trg_lengths = trg_lengths.to(device) #RuntimeError: cuDNN error: CUDNN_STATUS_EXECUTION_FAILED
 
     # Initialize variables
     loss = 0
@@ -47,7 +48,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     if use_teacher_forcing:
         for t in range(max_target_len):
             decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden, encoder_outputs
+                decoder_input, decoder_hidden, trg_lengths
             )
             # Teacher forcing: next input is current target
             decoder_input = target_variable[t].view(1, -1)
@@ -59,7 +60,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     else:
         for t in range(max_target_len):
             decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden, encoder_outputs
+                decoder_input, decoder_hidden, trg_lengths
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
@@ -106,10 +107,10 @@ def trainIters(model_name, src_voc, tar_voc, pairs, encoder, decoder,
     for iteration in range(start_iteration, n_iteration + 1):
         training_batch = training_batches[iteration - 1]
         # Extract fields from batch
-        input_variable, lengths, target_variable, mask, max_target_len = training_batch
+        input_variable, src_lengths, target_variable, mask, max_target_len, trg_lengths = training_batch
 
         # Run a training iteration with batch
-        loss = train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
+        loss = train(input_variable, src_lengths, target_variable, mask, max_target_len, trg_lengths, encoder,
                      decoder, encoder_optimizer, decoder_optimizer, batch_size, clip)
         print_loss += loss
 

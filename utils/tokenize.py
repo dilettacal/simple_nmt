@@ -130,12 +130,13 @@ def inputVar(l, voc):
 # Returns padded target sequence tensor, padding mask, and max target length
 def outputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
-    max_target_len = max([len(indexes) for indexes in indexes_batch])
+    lengths = torch.tensor(sorted([len(indexes) for indexes in indexes_batch], reverse=True))# 'lengths' array has to be sorted in decreasing order -> pack padded
+    max_target_len = max(lengths)
     padList = zeroPadding(indexes_batch)
     mask = binaryMatrix(padList)
     mask = torch.ByteTensor(mask)
     padVar = torch.LongTensor(padList)
-    return padVar, mask, max_target_len
+    return padVar, mask, max_target_len, lengths
 
 # Returns all items for a given batch of pairs
 def batch2TrainData(src_voc, tar_voc, pair_batch):
@@ -145,7 +146,7 @@ def batch2TrainData(src_voc, tar_voc, pair_batch):
         input_batch.append(pair[0])
         output_batch.append(pair[1])
     inp, lengths = inputVar(input_batch, src_voc)
-    output, mask, max_target_len = outputVar(output_batch, tar_voc)
-    return inp, lengths, output, mask, max_target_len
+    output, mask, max_target_len, out_lengths = outputVar(output_batch, tar_voc)
+    return inp, lengths, output, mask, max_target_len, out_lengths
 
 
