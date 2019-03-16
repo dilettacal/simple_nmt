@@ -11,8 +11,7 @@ from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS,
 from utils.utils import maskNLLLoss
 
 
-def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, src_embedding,
-          trg_embedding,
+def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder,
           encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5):
     # Zero gradients
     encoder_optimizer.zero_grad()
@@ -88,7 +87,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
 
 def trainIters(model_name, src_voc, tar_voc, pairs, encoder, decoder,
-               encoder_optimizer, decoder_optimizer, src_embedding, trg_embedding,
+               encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,print_every,
                save_every, clip, corpus_name, loadFilename, checkpoint=None):
     # Load batches for each iteration
@@ -111,7 +110,7 @@ def trainIters(model_name, src_voc, tar_voc, pairs, encoder, decoder,
 
         # Run a training iteration with batch
         loss = train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
-                     decoder, src_embedding, trg_embedding, encoder_optimizer, decoder_optimizer, batch_size, clip)
+                     decoder, encoder_optimizer, decoder_optimizer, batch_size, clip)
         print_loss += loss
 
         # Print progress
@@ -134,8 +133,8 @@ def trainIters(model_name, src_voc, tar_voc, pairs, encoder, decoder,
                 'loss': loss,
                 'src_dict': src_voc.__dict__,
                 'tar_dict': tar_voc.__dict__,
-                'src_embedding': src_embedding.state_dict(),
-                'trg_embedding': trg_embedding.state_dict()
+                'src_embedding': encoder.embedding.state_dict(),
+                'trg_embedding': decoder.embedding.state_dict()
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
 
 
@@ -193,12 +192,12 @@ def evaluate(searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
 ######## Inference from input ##############
 
 def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
-    print("Please insert your input sentence hier:")
+    print("Let's translate!")
     input_sentence = ''
     while(1):
         try:
             # Get input sentence
-            input_sentence = input('> ')
+            input_sentence = input('Source > ')
             # Check if it is quit case
             if input_sentence == 'q' or input_sentence == 'quit': break
             # Normalize sentence
@@ -208,7 +207,7 @@ def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
             # Format and print response sentence
             output_words[:] = [x for x in output_words if not (x == EOS or x == PAD)]
             if output_words:
-                print('Translation:', ' '.join(output_words))
+                print('Translation > ', ' '.join(output_words))
             else:
                 print("No translation found!")
 

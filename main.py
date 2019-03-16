@@ -2,11 +2,11 @@ import os
 import random
 
 import torch
-from torch import optim, nn
+from torch import optim
 
-from experiment import evaluateInput, GreedySearchDecoder, trainIters
+from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters
 from global_settings import device, FILENAME, SAVE_DIR
-from model import EncoderGRU, DecoderGRU
+from model.model import EncoderGRU, DecoderGRU
 from utils.prepro import read_lines, preprocess_pipeline
 from utils.tokenize import build_vocab
 
@@ -31,6 +31,8 @@ if __name__ == '__main__':
     pairs = preprocess_pipeline(pairs, cleaned_file, exp_contraction)
     print(random.choice(pairs))
 
+    limit = 10000
+
     if limit:
         pairs = pairs[:limit]
 
@@ -49,6 +51,9 @@ if __name__ == '__main__':
     decoder_n_layers = 1
     dropout = 0.1
     batch_size = 64
+    input_size = input_lang.num_words
+    output_size = output_lang.num_words
+    embedding_size = 256
 
     # Set checkpoint to load from; set to None if starting from scratch
     loadFilename = None
@@ -73,17 +78,18 @@ if __name__ == '__main__':
         output_lang.__dict__ = checkpoint['trg_voc']
 
     print('Building encoder and decoder ...')
-    # Initialize word embeddings
-    src_emb = nn.Embedding(input_lang.num_words, hidden_size)
-    trg_emb = nn.Embedding(output_lang.num_words, hidden_size)
+    # Initialize encoder & decoder models
+    encoder = EncoderGRU(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
+                         n_layers=encoder_n_layers, dropout=dropout)
+    decoder = DecoderGRU(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers, dropout=dropout)
 
     if loadFilename:
+        src_emb = encoder.embedding
+        trg_emb = decoder.embedding
         src_emb.load_state_dict(src_embed)
         trg_emb.load_state_dict(trg_embed)
 
-    # Initialize encoder & decoder models
-    encoder = EncoderGRU(hidden_size, src_emb, encoder_n_layers, dropout)
-    decoder = DecoderGRU(trg_emb, hidden_size, output_lang.num_words, decoder_n_layers, dropout)
+
 
     if loadFilename:
         encoder.load_state_dict(encoder_sd)
@@ -121,8 +127,8 @@ if __name__ == '__main__':
     # Run training iterations
     print("Starting Training!")
     trainIters(model_name, input_lang, output_lang, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
-               src_emb, trg_emb, encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-               print_every, save_every, clip, "eng-deu.txt", loadFilename)
+               encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
+               print_every, save_every, clip, FILENAME, loadFilename)
 
 
     # Set dropout layers to eval mode
