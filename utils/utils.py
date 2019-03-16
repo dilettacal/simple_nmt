@@ -1,3 +1,6 @@
+import random
+
+import numpy
 import numpy as np
 import torch
 from torch.utils.data import SubsetRandomSampler
@@ -57,3 +60,13 @@ def maskNLLLoss(inp, target, mask):
     loss = crossEntropy.masked_select(mask).mean()
     loss = loss.to(device)
     return loss, nTotal.item()
+
+
+def split_data(data, test_ratio=0.1):
+    num_samples = len(data)
+    test_range = int(num_samples*test_ratio)
+    random.shuffle(data)
+
+    train_set = data[:test_range]
+    test_set = data[train_set:]
+    return train_set, test_set

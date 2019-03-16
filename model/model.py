@@ -4,12 +4,8 @@ import torch.nn.functional as F
 
 """
 Model components:
-- Encoder:
-    - EncoderGRU: Code borrowed from PyTorch Chatbot Tutorial: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
-    - EncoderLSTM: Encoder based on LSTM units. 
-- Decoder
-    - DecoderGRU: Code adapted from PyTorch Chatbot Tutorial: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
-    - DecoderLSTM: Decoder based on LSTM units
+Encoder and Decoder based on LSTMs.
+Code inpsired by PyTorch Chatbot Tutorial:https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
 
 
 """

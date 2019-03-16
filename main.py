@@ -6,7 +6,7 @@ from torch import optim
 
 from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters
 from global_settings import device, FILENAME, SAVE_DIR
-from model.model import EncoderGRU, DecoderGRU, EncoderLSTM, DecoderLSTM
+from model.model import EncoderLSTM, DecoderLSTM
 from utils.prepro import read_lines, preprocess_pipeline
 from utils.tokenize import build_vocab
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     # Use appropriate device
     encoder = encoder.to(device)
     decoder = decoder.to(device)
-    print('Models built and ready to go!')
+    print('Models built:')
     print(encoder)
     print(decoder)
 
