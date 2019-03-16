@@ -30,7 +30,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     n_totals = 0
 
     # Forward pass through encoder
-    encoder_outputs, encoder_hidden = encoder(input_variable, lengths)
+    encoder_outputs, encoder_hidden, encoder_cell = encoder(input_variable, lengths)
 
     # Create initial decoder input (start with SOS tokens for each sentence)
     decoder_input = torch.LongTensor([[SOS_token for _ in range(batch_size)]])
@@ -48,7 +48,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     if use_teacher_forcing:
         for t in range(max_target_len):
             decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden, trg_lengths
+                decoder_input, decoder_hidden, encoder_cell
             )
             # Teacher forcing: next input is current target
             decoder_input = target_variable[t].view(1, -1)
@@ -60,7 +60,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     else:
         for t in range(max_target_len):
             decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden, trg_lengths
+                decoder_input, decoder_hidden, encoder_cell
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
@@ -147,7 +147,7 @@ class GreedySearchDecoder(nn.Module):
 
     def forward(self, input_seq, input_length, max_length):
         # Forward input through encoder model
-        encoder_outputs, encoder_hidden = self.encoder(input_seq, input_length)
+        encoder_outputs, encoder_hidden, encoder_cell = self.encoder(input_seq, input_length)
         # Prepare encoder's final hidden layer to be first hidden input to the decoder
         decoder_hidden = encoder_hidden[:self.decoder.n_layers]
         # Initialize decoder input with SOS_token
@@ -158,7 +158,7 @@ class GreedySearchDecoder(nn.Module):
         # Iteratively decode one word token at a time
         for _ in range(max_length):
             # Forward pass through decoder
-            decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden, encoder_outputs)
+            decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden, encoder_cell)
             # Obtain most likely word token and its softmax score
             decoder_scores, decoder_input = torch.max(decoder_output, dim=1)
             # Record token and score

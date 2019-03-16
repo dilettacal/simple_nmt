@@ -101,7 +101,7 @@ class DecoderGRU(nn.Module):
         self.out = nn.Linear(hidden_size, output_size)
         # self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, input_step, last_hidden, trg_lengths):
+    def forward(self, input_step, last_hidden):
         #input_step = [seq_len, batch_size]
         #last_hidden = [seq_len, batch_size, hidden_size] #1, 64, 256
         #embedded = [seq_len, batch_size, embedding_size]
