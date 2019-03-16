@@ -139,6 +139,7 @@ def trainIters(model_name, src_voc, tar_voc, pairs, encoder, decoder,
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
 
 
+
 class GreedySearchDecoder(nn.Module):
     def __init__(self, encoder, decoder):
         super(GreedySearchDecoder, self).__init__()

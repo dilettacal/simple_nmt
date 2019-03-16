@@ -12,7 +12,7 @@ from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data
 from utils.tokenize import build_vocab
 
 from global_settings import DATA_DIR
-from utils.utils import split_data
+from utils.utils import split_data, filter_pairs
 
 
 def define_model():
@@ -50,10 +50,11 @@ if __name__ == '__main__':
     print("Sample from data:")
     print(random.choice(pairs))
 
-    limit = 10000
+    limit = None
 
     if limit:
         pairs = pairs[:limit]
+
 
     train_set, test_set = split_data(pairs)
 
