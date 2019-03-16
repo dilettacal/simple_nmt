@@ -6,7 +6,7 @@ from torch import optim
 
 from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters
 from global_settings import device, FILENAME, SAVE_DIR
-from model.model import EncoderGRU, DecoderGRU
+from model.model import EncoderGRU, DecoderGRU, EncoderLSTM, DecoderLSTM
 from utils.prepro import read_lines, preprocess_pipeline
 from utils.tokenize import build_vocab
 
@@ -87,16 +87,15 @@ if __name__ == '__main__':
 
     print('Building encoder and decoder ...')
     # Initialize encoder & decoder models
-    encoder = EncoderGRU(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
+    encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
                          n_layers=encoder_n_layers, dropout=dropout)
-    decoder = DecoderGRU(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers)
+    decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers)
 
     if loadFilename:
         src_emb = encoder.embedding
         trg_emb = decoder.embedding
         src_emb.load_state_dict(src_embed)
         trg_emb.load_state_dict(trg_embed)
-
 
 
     if loadFilename:
