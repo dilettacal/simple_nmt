@@ -193,6 +193,7 @@ def evaluate(searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
 ######## Inference from input ##############
 
 def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
+    print("Please insert your input sentence hier:")
     input_sentence = ''
     while(1):
         try:
