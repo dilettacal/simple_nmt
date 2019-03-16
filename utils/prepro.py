@@ -145,6 +145,7 @@ def save_clean_data(path, pairs, filename):
     path_to_dir = os.path.join(path, filename)
     dump(pairs, open(path_to_dir, 'wb'))
     print('File %s saved in %s' % (filename, path_to_dir))
+    return path_to_dir
 
 def load_cleaned_data(path, filename):
     path_to_file = os.path.join(path, filename)
@@ -186,5 +187,6 @@ def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None,
         cleaned_pairs = reverse_language_pair(cleaned_pairs)
 
     if cleaned_file_to_store:
-        save_clean_data(PREPRO_DIR, cleaned_pairs, cleaned_file_to_store)
-    return cleaned_pairs
+        store_path = save_clean_data(PREPRO_DIR, cleaned_pairs, cleaned_file_to_store)
+        print("Preprocessing complete!")
+    return cleaned_pairs, store_path

@@ -1,16 +1,18 @@
 import os
 import random
+from pickle import load
 
 import torch
 from torch import optim
 
 from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters
-from global_settings import device, FILENAME, SAVE_DIR
+from global_settings import device, FILENAME, SAVE_DIR, PREPRO_DIR, TRAIN_FILE, TEST_FILE
 from model.model import EncoderLSTM, DecoderLSTM
-from utils.prepro import read_lines, preprocess_pipeline
+from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data
 from utils.tokenize import build_vocab
 
 from global_settings import DATA_DIR
+from utils.utils import split_data
 
 
 def define_model():
@@ -21,28 +23,45 @@ def run_experiment():
 
 if __name__ == '__main__':
 
-
+    start_root = "."
     src_lang = "eng"
     trg_lang = "deu"
     exp_contraction = True
     src_reversed = False
     limit = None
 
-    start_root = "."
-    pairs = read_lines(os.path.join(start_root, DATA_DIR), FILENAME)
-    print(len(pairs))
-
     cleaned_file = "%s-%s_cleaned" % (src_lang, trg_lang) + "_rude" if not exp_contraction else "%s-%s_cleaned" % (
         src_lang, trg_lang) + "_full"
     cleaned_file = cleaned_file + "reversed.pkl" if src_reversed else cleaned_file + ".pkl"
 
-    pairs = preprocess_pipeline(pairs, cleaned_file, exp_contraction)
+    if os.path.isfile(os.path.join(PREPRO_DIR, cleaned_file)):
+        print("File already preprocessed! Loading file....")
+        pairs = load_cleaned_data(PREPRO_DIR, filename=cleaned_file)
+    else:
+        print("No preprocessed file found. Starting data preprocessing...")
+
+
+        pairs = read_lines(os.path.join(start_root, DATA_DIR), FILENAME)
+        print(len(pairs))
+
+        pairs, path = preprocess_pipeline(pairs, cleaned_file, exp_contraction) #data/prepro/eng-deu_cleaned_full.pkl
+
+
+    print("Sample from data:")
     print(random.choice(pairs))
 
     limit = 10000
 
     if limit:
         pairs = pairs[:limit]
+
+    train_set, test_set = split_data(pairs)
+
+    print("Data in train set:", len(train_set))
+    print("Data in test set:", len(test_set))
+
+    exit()
+
 
     # Build vocabularies
     src_sents = [item[0] for item in pairs]

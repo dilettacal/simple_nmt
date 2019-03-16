@@ -65,8 +65,9 @@ def maskNLLLoss(inp, target, mask):
 def split_data(data, test_ratio=0.1):
     num_samples = len(data)
     test_range = int(num_samples*test_ratio)
+    train_range = num_samples-test_range
     random.shuffle(data)
 
-    train_set = data[:test_range]
-    test_set = data[train_set:]
+    train_set = data[:train_range]
+    test_set = data[train_range:]
     return train_set, test_set
