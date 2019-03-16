@@ -37,14 +37,10 @@ class Voc:
             self.word2count[word] += 1
 
     def tensorize_sequence_list(self, seq_list, append_sos=False, append_eos = False):
-        tensor = []
-        for sent in seq_list:
-            splitted = sent.split(" ")
-            if append_sos:
-                tensor.append(SOS_token)
-            tensor.append(self.word2index[s] for s in splitted)
-            if append_eos:
-                tensor.append(EOS_token)
+        sos = SOS+" " if append_sos else ""
+        eos = " "+ EOS if append_eos else ""
+        seq_list = [sos + seq + eos for seq in seq_list if (append_sos and append_eos)]
+        tensor = [[self.word2index[s] for s in sent.split(" ")] for sent in seq_list]
         return tensor
 
     # Remove words below a certain count threshold

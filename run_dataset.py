@@ -214,9 +214,9 @@ if __name__ == '__main__':
 
             # run code below for every timestep in the ys batch
             for t in range(1, ys.size(1)):
-                predictions, dec_hidden, _ = decoder(dec_input.to(device),
+                predictions, dec_hidden = decoder(dec_input.to(device),
                                                      dec_hidden.to(device),
-                                                     enc_output.to(device))
+                                                     enc_cell)
                 loss += loss_function(ys[:, t].to(device), predictions.to(device))
                 # loss += loss_
                 dec_input = ys[:, t].unsqueeze(1)
