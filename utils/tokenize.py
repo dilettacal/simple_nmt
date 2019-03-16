@@ -1,6 +1,7 @@
 # Default word tokens
 import itertools
-
+import numpy as np
+from torch.utils.data import Dataset, DataLoader
 import torch
 
 PAD_token = 0  # Used for padding short sentences
@@ -17,7 +18,7 @@ class Voc:
     def __init__(self, name):
         self.name = name
         self.trimmed = False
-        self.word2index = {}
+        self.word2index = {PAD: PAD_token, SOS: SOS_token, EOS: EOS_token, UNK: UNK_token}
         self.word2count = {}
         self.index2word = {PAD_token: PAD, SOS_token: SOS, EOS_token: EOS, UNK_token:UNK}
         self.num_words = 4  # Count SOS, EOS, PAD
@@ -34,6 +35,17 @@ class Voc:
             self.num_words += 1
         else:
             self.word2count[word] += 1
+
+    def tensorize_sequence_list(self, seq_list, append_sos=False, append_eos = False):
+        tensor = []
+        for sent in seq_list:
+            splitted = sent.split(" ")
+            if append_sos:
+                tensor.append(SOS_token)
+            tensor.append(self.word2index[s] for s in splitted)
+            if append_eos:
+                tensor.append(EOS_token)
+        return tensor
 
     # Remove words below a certain count threshold
     def trim(self, min_count):
@@ -52,7 +64,7 @@ class Voc:
         ))
 
         # Reinitialize dictionaries
-        self.word2index = {}
+        self.word2index = {PAD: PAD_token, SOS: SOS_token, EOS: EOS_token, UNK: UNK_token}
         self.word2count = {}
         self.index2word = {PAD_token: PAD, SOS_token: SOS, EOS_token: EOS, UNK_token: UNK}
         self.num_words = 4 # Count default tokens
@@ -148,5 +160,37 @@ def batch2TrainData(src_voc, tar_voc, pair_batch):
     inp, lengths = inputVar(input_batch, src_voc)
     output, mask, max_target_len, out_lengths = outputVar(output_batch, tar_voc)
     return inp, lengths, output, mask, max_target_len, out_lengths
+
+############# Google colab example ##########
+#https://colab.research.google.com/drive/1uFJBO1pgsiFwCGIJwZlhUzaJ2srDbtw-#scrollTo=t4djvgil5bMQ
+
+def max_length(tensor):
+    return max(len(t) for t in tensor)
+
+
+def pad_sequences(x, max_len):
+    padded = np.zeros((max_len), dtype=np.int64)
+    if len(x) > max_len: padded[:] = x[:max_len]
+    else: padded[:len(x)] = x
+    return padded
+
+class CustomDataset(Dataset):
+    def __init__(self, src, trg):
+        self.src = src
+        self.trg = trg
+
+        self.len = [np.sum(1-np.equal(x,9)) for x in src]
+
+    def __getitem__(self, item):
+        x = self.src[item]
+        y = self.trg[item]
+
+        x_len = self.len[item]
+        return x, y, x_len
+
+    def __len__(self):
+        return len(self.src)
+
+
 
 
