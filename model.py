@@ -2,16 +2,29 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+"""
+Model components:
+- Encoder:
+    - EncoderGRU: Code borrowed from PyTorch Chatbot Tutorial: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
+    - EncoderLSTM: Encoder based on LSTM units. 
+- Decoder
+    - DecoderGRU: Code adapted from PyTorch Chatbot Tutorial: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
+    - DecoderLSTM: Decoder based on LSTM units
+
+
+"""
+
+
 class EncoderGRU(nn.Module):
-    def __init__(self, hidden_size, embedding, n_layers=1, dropout=0, bidirectional=False):
+    def __init__(self, input_size, emb_size, hidden_size, n_layers=1, dropout=0, bidirectional=False):
         super(EncoderGRU, self).__init__()
         self.n_layers = n_layers
+        self.input_size = input_size
+        self.emb_size = emb_size
         self.hidden_size = hidden_size
-        self.embedding = embedding
         self.bidirectional = bidirectional
 
-        # Initialize GRU; the input_size and hidden_size params are both set to 'hidden_size'
-        #   because our input size is a word embedding with number of features == hidden_size
+        self.embedding = nn.Embedding(input_size, emb_size, padding_idx=0)
         self.gru = nn.GRU(hidden_size, hidden_size, n_layers,
                           dropout=(0 if n_layers == 1 else dropout), bidirectional=bidirectional)
 
@@ -37,8 +50,10 @@ class EncoderGRU(nn.Module):
         return outputs, hidden
 
 
+
+
 class DecoderGRU(nn.Module):
-    def __init__(self, embedding, hidden_size, output_size, n_layers=1, dropout=0.1):
+    def __init__(self, output_size, emb_size, hidden_size, n_layers=1, dropout=0.1):
         super(DecoderGRU, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -46,7 +61,7 @@ class DecoderGRU(nn.Module):
         self.dropout = dropout
 
         # Define layers
-        self.embedding = embedding
+        self.embedding = nn.Embedding(output_size, emb_size)
         self.embedding_dropout = nn.Dropout(dropout)
         self.gru = nn.GRU(hidden_size, hidden_size, n_layers, dropout=(0 if n_layers == 1 else dropout))
 
