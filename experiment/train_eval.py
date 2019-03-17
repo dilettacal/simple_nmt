@@ -77,8 +77,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     loss.backward()
 
     # Clip gradients: gradients are modified in place
-   # _ = torch.nn.utils.clip_grad_norm_(encoder.parameters(), clip)
-   # _ = torch.nn.utils.clip_grad_norm_(decoder.parameters(), clip)
+    _ = torch.nn.utils.clip_grad_norm_(encoder.parameters(), clip)
+    _ = torch.nn.utils.clip_grad_norm_(decoder.parameters(), clip)
 
     # Adjust model weights
     encoder_optimizer.step()

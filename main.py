@@ -9,7 +9,7 @@ from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters
 from global_settings import device, FILENAME, SAVE_DIR, PREPRO_DIR, TRAIN_FILE, TEST_FILE
 from model.model import EncoderLSTM, DecoderLSTM
 from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data
-from utils.tokenize import build_vocab
+from utils.tokenize import build_vocab, max_length
 
 from global_settings import DATA_DIR
 from utils.utils import split_data, filter_pairs
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     print("Sample from data:")
     print(random.choice(pairs))
 
-    limit = 10000
+    limit = 30000
 
     if limit:
         pairs = pairs[:limit]
@@ -66,16 +66,19 @@ if __name__ == '__main__':
     src_sents = [item[0] for item in pairs]
     trg_sents = [item[1] for item in pairs]
 
+    print("Max sentence length in source sentences:", max_length(src_sents))
+    print("Max sentence length in source sentences:", max_length(trg_sents))
+
     input_lang = build_vocab(src_sents, "eng")
     output_lang = build_vocab(trg_sents, "deu")
 
 
     # Configure models
-    model_name = 'simple_nmt_model'
+    model_name = ''
+    model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model'
     hidden_size = 256
     encoder_n_layers = 1
     decoder_n_layers = 1
-    dropout = 0.1
     batch_size = 64
     input_size = input_lang.num_words
     output_size = output_lang.num_words
@@ -106,7 +109,7 @@ if __name__ == '__main__':
     print('Building encoder and decoder ...')
     # Initialize encoder & decoder models
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
-                         n_layers=encoder_n_layers, dropout=dropout)
+                         n_layers=encoder_n_layers)
     decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers)
 
     if loadFilename:
@@ -129,11 +132,11 @@ if __name__ == '__main__':
 
 
     # Configure training/optimization
-    clip = 1.0
+    clip = 30.0
     teacher_forcing_ratio = 0.3
-    learning_rate = 0.0001 #0.0001
+    learning_rate = 0.001 #0.0001
     decoder_learning_ratio = 2.0 #5.0
-    n_iteration = 6000
+    n_iteration = 10000
     print_every = 100
     save_every = 500
 

@@ -11,7 +11,7 @@ Code inpsired by PyTorch Chatbot Tutorial:https://pytorch.org/tutorials/beginner
 """
 
 class EncoderLSTM(nn.Module):
-    def __init__(self, input_size, emb_size, hidden_size, n_layers=1, dropout=0, bidirectional=False):
+    def __init__(self, input_size, emb_size, hidden_size, n_layers=1, dropout=0.5, bidirectional=False):
         super(EncoderLSTM, self).__init__()
         self.n_layers = n_layers
         self.input_size = input_size
@@ -19,9 +19,11 @@ class EncoderLSTM(nn.Module):
         self.hidden_size = hidden_size
         self.bidirectional = bidirectional
 
+
         self.embedding = nn.Embedding(input_size, emb_size, padding_idx=0)
         self.lstm = nn.LSTM(emb_size, hidden_size, n_layers,
-                           dropout=(0 if n_layers == 1 else dropout), bidirectional=bidirectional)
+                           dropout=(dropout if n_layers > 1 else 0), bidirectional=bidirectional)
+        self.dropout= nn.Dropout(dropout)
 
     def forward(self, input_seq, input_lengths):
         # input_seq: batch of input sentence, shape = (max_len, batch_size)
@@ -30,6 +32,7 @@ class EncoderLSTM(nn.Module):
 
         # Convert word indexes to embeddings
         embedded = self.embedding(input_seq)
+        embedded = self.dropout(embedded)
         # Pack padded batch of sequences for RNN module
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
         # Forward pass through GRU
@@ -46,7 +49,7 @@ class EncoderLSTM(nn.Module):
 
 
 class DecoderLSTM(nn.Module):
-    def __init__(self, output_size, emb_size, hidden_size, n_layers=1):
+    def __init__(self, output_size, emb_size, hidden_size, n_layers=1, dropout=0.2):
         super(DecoderLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -54,7 +57,8 @@ class DecoderLSTM(nn.Module):
 
         # Define layers
         self.embedding = nn.Embedding(output_size, emb_size, padding_idx=0)
-        self.lstm = nn.LSTM(emb_size, hidden_size, n_layers, )
+        self.lstm = nn.LSTM(emb_size, hidden_size, n_layers, dropout=(dropout if n_layers > 1 else 0))
+        self.dropout = nn.Dropout(dropout)
 
         self.out = nn.Linear(hidden_size, output_size)
         # self.softmax = nn.LogSoftmax(dim=1)
@@ -64,6 +68,7 @@ class DecoderLSTM(nn.Module):
         #last_hidden = [seq_len, batch_size, hidden_size] #1, 64, 256
         #embedded = [seq_len, batch_size, embedding_size]
         embedded = self.embedding(input_step)
+        embedded = self.dropout(embedded)
 
         # Forward through unidirectional GRU
         output, hidden = self.lstm(embedded, last_hidden)
