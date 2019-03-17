@@ -50,7 +50,7 @@ if __name__ == '__main__':
     print("Sample from data:")
     print(random.choice(pairs))
 
-    limit = None
+    limit = 10000
 
     if limit:
         pairs = pairs[:limit]
@@ -61,10 +61,8 @@ if __name__ == '__main__':
     print("Data in train set:", len(train_set))
     print("Data in test set:", len(test_set))
 
-    exit()
-
-
-    # Build vocabularies
+    print("Building vocabularies...")
+    # Build vocabularies based on dataset
     src_sents = [item[0] for item in pairs]
     trg_sents = [item[1] for item in pairs]
 
@@ -85,7 +83,7 @@ if __name__ == '__main__':
 
     # Set checkpoint to load from; set to None if starting from scratch
     loadFilename = None
-    checkpoint_iter = 4000
+    checkpoint_iter = 5000
     # loadFilename = os.path.join(save_dir, model_name, corpus_name,
     #                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
     #                            '{}_checkpoint.tar'.format(checkpoint_iter))
@@ -131,17 +129,17 @@ if __name__ == '__main__':
 
 
     # Configure training/optimization
-    clip = 30.0
+    clip = 1.0
     teacher_forcing_ratio = 0.3
-    learning_rate = 0.0001
-    decoder_learning_ratio = 5.0
-    n_iteration = 10000
+    learning_rate = 0.0001 #0.0001
+    decoder_learning_ratio = 2.0 #5.0
+    n_iteration = 6000
     print_every = 100
     save_every = 500
 
     # Ensure dropout layers are in train mode
-    encoder.train()
-    decoder.train()
+    #encoder.train()
+    #decoder.train()
 
     # Initialize optimizers
     print('Building optimizers ...')
@@ -153,7 +151,7 @@ if __name__ == '__main__':
 
     # Run training iterations
     print("Starting Training!")
-    trainIters(model_name, input_lang, output_lang, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
+    trainIters(model_name, input_lang, output_lang, train_set, test_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
                print_every, save_every, clip, FILENAME, loadFilename)
 

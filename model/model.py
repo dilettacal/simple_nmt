@@ -20,7 +20,7 @@ class EncoderLSTM(nn.Module):
         self.bidirectional = bidirectional
 
         self.embedding = nn.Embedding(input_size, emb_size, padding_idx=0)
-        self.lstm = nn.LSTM(hidden_size, hidden_size, n_layers,
+        self.lstm = nn.LSTM(emb_size, hidden_size, n_layers,
                            dropout=(0 if n_layers == 1 else dropout), bidirectional=bidirectional)
 
     def forward(self, input_seq, input_lengths):
@@ -33,7 +33,7 @@ class EncoderLSTM(nn.Module):
         # Pack padded batch of sequences for RNN module
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
         # Forward pass through GRU
-        outputs, (hidden, cell) = self.lstm(packed)
+        outputs, hidden = self.lstm(packed)
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
@@ -42,7 +42,7 @@ class EncoderLSTM(nn.Module):
         # Return output and final hidden state
         # outputs: output features from the last hidden layer of GRU (sum of bidirectional outputs)
         # shape= (max_len, batch_size, hidden_size)
-        return outputs, hidden, cell
+        return outputs, hidden
 
 
 class DecoderLSTM(nn.Module):
@@ -54,19 +54,19 @@ class DecoderLSTM(nn.Module):
 
         # Define layers
         self.embedding = nn.Embedding(output_size, emb_size, padding_idx=0)
-        self.lstm = nn.LSTM(hidden_size, hidden_size, n_layers, )
+        self.lstm = nn.LSTM(emb_size, hidden_size, n_layers, )
 
         self.out = nn.Linear(hidden_size, output_size)
         # self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, input_step, last_hidden, cell):
+    def forward(self, input_step, last_hidden):
         #input_step = [seq_len, batch_size]
         #last_hidden = [seq_len, batch_size, hidden_size] #1, 64, 256
         #embedded = [seq_len, batch_size, embedding_size]
         embedded = self.embedding(input_step)
 
         # Forward through unidirectional GRU
-        output, (hidden, cell) = self.lstm(embedded, (last_hidden, cell))
+        output, hidden = self.lstm(embedded, last_hidden)
         # Squeeze first dimension
         output = output.squeeze(0)
         # Prediction
