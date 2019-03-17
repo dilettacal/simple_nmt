@@ -70,23 +70,3 @@ def split_data(data, test_ratio=0.1):
     train_set = data[:train_range]
     test_set = data[train_range:]
     return train_set, test_set
-
-
-### Google colab masking function
-
-def loss_function(real, pred, criterion):
-    """ Only consider non-zero inputs in the loss; mask needed """
-    # mask = 1 - np.equal(real, 0) # assign 0 to all above 0 and 1 to all 0s
-    # print(mask)
-    mask = real.ge(1).type(torch.cuda.FloatTensor if USE_CUDA else torch.FloaTensor)
-
-    loss_ = criterion(pred, real) * mask
-    return torch.mean(loss_)
-
-
-### sort batch function to be able to use with pad_packed_sequence
-def sort_batch(X, y, lengths):
-    lengths, indx = lengths.sort(dim=0, descending=True)
-    X = X[indx]
-    y = y[indx]
-    return X.transpose(0,1), y, lengths # transpose (batch x seq) to (seq x batch)
