@@ -21,7 +21,8 @@ eng_prefixes = (
 
 
 def max_length(lines):
-    return max([len(sent.split(" "))] for sent in lines)
+    lens = [[len(sent.split(" "))] for sent in lines]
+    return max(lens)
 
 
 def english_prefixes(sentence):

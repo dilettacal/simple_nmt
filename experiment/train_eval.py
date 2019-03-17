@@ -133,8 +133,11 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
 def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, decoder,
                encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
-               save_every, clip, corpus_name, loadFilename, checkpoint=None):
+               save_every, clip, corpus_name):
     # Load batches for each iteration
+    global directory
+    directory = ""
+
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
                       for _ in range(n_iteration)]
 
@@ -150,8 +153,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     print_val_loss_avg = 0
     print_loss_avg = 0
 
-    if loadFilename:
-        start_iteration = checkpoint['iteration'] + 1
 
 
     for iteration in range(start_iteration, n_iteration + 1):
@@ -204,7 +205,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 'trg_embedding': decoder.embedding.state_dict()
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
 
-    return print_val_loss_avg
+    return print_val_loss_avg, directory
 
 
 

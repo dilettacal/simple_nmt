@@ -160,7 +160,7 @@ def batch2TrainData(src_voc, tar_voc, pair_batch):
 ############# Google colab example ##########
 #https://colab.research.google.com/drive/1uFJBO1pgsiFwCGIJwZlhUzaJ2srDbtw-#scrollTo=t4djvgil5bMQ
 
-def max_length(tensor):
+def tensor_max_len(tensor):
     return max(len(t) for t in tensor)
 
 

@@ -9,10 +9,10 @@ from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters
 from global_settings import device, FILENAME, SAVE_DIR, PREPRO_DIR, TRAIN_FILE, TEST_FILE, EXPERIMENT_DIR, LOG_FILE
 from model.model import EncoderLSTM, DecoderLSTM
 from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data
-from utils.tokenize import build_vocab, max_length
+from utils.tokenize import build_vocab, tensor_max_len
 
 from global_settings import DATA_DIR
-from utils.utils import split_data, filter_pairs
+from utils.utils import split_data, filter_pairs, max_length
 
 
 def define_model():
@@ -39,11 +39,7 @@ if __name__ == '__main__':
         pairs = load_cleaned_data(PREPRO_DIR, filename=cleaned_file)
     else:
         print("No preprocessed file found. Starting data preprocessing...")
-
-
         pairs = read_lines(os.path.join(start_root, DATA_DIR), FILENAME)
-        print(len(pairs))
-
         pairs, path = preprocess_pipeline(pairs, cleaned_file, exp_contraction) #data/prepro/eng-deu_cleaned_full.pkl
 
 
@@ -55,7 +51,6 @@ if __name__ == '__main__':
     if limit:
         pairs = pairs[:limit]
 
-
     train_set, test_set = split_data(pairs)
 
     print("Data in train set:", len(train_set))
@@ -66,17 +61,14 @@ if __name__ == '__main__':
     src_sents = [item[0] for item in pairs]
     trg_sents = [item[1] for item in pairs]
 
+    max_src_l = max_length(src_sents)
+    max_trg_l = max_length(trg_sents)
 
-    print()
-
-    exit()
-
-    print("Max sentence length in source sentences:", max_length(src_sents))
-    print("Max sentence length in source sentences:", max_length(trg_sents))
+    print("Max sentence length in source sentences:", max_src_l)
+    print("Max sentence length in source sentences:", max_trg_l)
 
     input_lang = build_vocab(src_sents, "eng")
     output_lang = build_vocab(trg_sents, "deu")
-
 
     # Configure models
     model_name = ''
@@ -90,20 +82,16 @@ if __name__ == '__main__':
     embedding_size = 256
 
     print('Building encoder and decoder ...')
-    # Initialize encoder & decoder models
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
                          n_layers=encoder_n_layers)
     decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers)
 
-    # Use appropriate device
     encoder = encoder.to(device)
     decoder = decoder.to(device)
     print('Models built:')
     print(encoder)
     print(decoder)
 
-
-    # Configure training/optimization
     clip = 30.0
     teacher_forcing_ratio = 0.3
     learning_rate = 0.001 #0.0001
@@ -112,10 +100,6 @@ if __name__ == '__main__':
     print_every = 100
     save_every = 500
 
-    # Ensure dropout layers are in train mode
-    #encoder.train()
-    #decoder.train()
-
     # Initialize optimizers
     print('Building optimizers ...')
     encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
@@ -123,18 +107,25 @@ if __name__ == '__main__':
 
     # Run training iterations
     print("Starting Training!")
-    val_loss = trainIters(model_name, input_lang, output_lang, train_set, test_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
+    val_loss, directory = trainIters(model_name, input_lang, output_lang, train_set, test_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-               print_every, save_every, clip, FILENAME, loadFilename)
+               print_every, save_every, clip, FILENAME)
+
+    print("Checkponits saved in %s" %(directory))
 
     #Log file name
     try:
         with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), encoding="utf-8", mode="w") as f:
-            f.write("Experiment name:")
+            print("Logging to file...")
+            f.write("Experiment name:\n")
             f.write(model_name)
-            f.write("Average validation loss:")
+            f.write("\nDirectory:\n")
+            f.write(str(directory))
+            f.write("\n Max src length %s" %max_src_l)
+            f.write("\n Max trg length %s"%max_trg_l)
+            f.write("\nAverage validation loss:\n")
             f.write(str(val_loss))
-            f.write("**********************************")
+            f.write("\n**********************************")
     except IOError or TypeError or RuntimeError:
-        print("Log file not found!")
+        print("Log to file failed!")
 
