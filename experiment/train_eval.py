@@ -147,6 +147,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     start_iteration = 1
     train_print_loss = 0
     val_print_loss = 0
+    print_val_loss_avg = 0
+    print_loss_avg = 0
+
     if loadFilename:
         start_iteration = checkpoint['iteration'] + 1
 
@@ -200,6 +203,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 'src_embedding': encoder.embedding.state_dict(),
                 'trg_embedding': decoder.embedding.state_dict()
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
+
+    return print_val_loss_avg
 
 
 

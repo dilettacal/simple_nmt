@@ -6,7 +6,7 @@ import torch
 from torch import optim
 
 from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters
-from global_settings import device, FILENAME, SAVE_DIR, PREPRO_DIR, TRAIN_FILE, TEST_FILE
+from global_settings import device, FILENAME, SAVE_DIR, PREPRO_DIR, TRAIN_FILE, TEST_FILE, EXPERIMENT_DIR, LOG_FILE
 from model.model import EncoderLSTM, DecoderLSTM
 from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data
 from utils.tokenize import build_vocab, max_length
@@ -66,6 +66,11 @@ if __name__ == '__main__':
     src_sents = [item[0] for item in pairs]
     trg_sents = [item[1] for item in pairs]
 
+
+    print()
+
+    exit()
+
     print("Max sentence length in source sentences:", max_length(src_sents))
     print("Max sentence length in source sentences:", max_length(trg_sents))
 
@@ -84,44 +89,11 @@ if __name__ == '__main__':
     output_size = output_lang.num_words
     embedding_size = 256
 
-    # Set checkpoint to load from; set to None if starting from scratch
-    loadFilename = None
-    checkpoint_iter = 5000
-    # loadFilename = os.path.join(save_dir, model_name, corpus_name,
-    #                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
-    #                            '{}_checkpoint.tar'.format(checkpoint_iter))
-
-    # Load model if a loadFilename is provided
-    if loadFilename:
-        # If loading on same machine the model was trained on
-        checkpoint = torch.load(loadFilename)
-        # If loading a model trained on GPU to CPU
-        # checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
-        encoder_sd = checkpoint['en']
-        decoder_sd = checkpoint['de']
-        encoder_optimizer_sd = checkpoint['en_opt']
-        decoder_optimizer_sd = checkpoint['de_opt']
-        src_embed = checkpoint['src_emb']
-        trg_embed = checkpoint['trg_emb']
-        input_lang.__dict__ = checkpoint['src_voc']
-        output_lang.__dict__ = checkpoint['trg_voc']
-
     print('Building encoder and decoder ...')
     # Initialize encoder & decoder models
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
                          n_layers=encoder_n_layers)
     decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers)
-
-    if loadFilename:
-        src_emb = encoder.embedding
-        trg_emb = decoder.embedding
-        src_emb.load_state_dict(src_embed)
-        trg_emb.load_state_dict(trg_embed)
-
-
-    if loadFilename:
-        encoder.load_state_dict(encoder_sd)
-        decoder.load_state_dict(decoder_sd)
 
     # Use appropriate device
     encoder = encoder.to(device)
@@ -148,22 +120,21 @@ if __name__ == '__main__':
     print('Building optimizers ...')
     encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
-    if loadFilename:
-        encoder_optimizer.load_state_dict(encoder_optimizer_sd)
-        decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 
     # Run training iterations
     print("Starting Training!")
-    trainIters(model_name, input_lang, output_lang, train_set, test_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
+    val_loss = trainIters(model_name, input_lang, output_lang, train_set, test_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
                print_every, save_every, clip, FILENAME, loadFilename)
 
+    #Log file name
+    try:
+        with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), encoding="utf-8", mode="w") as f:
+            f.write("Experiment name:")
+            f.write(model_name)
+            f.write("Average validation loss:")
+            f.write(str(val_loss))
+            f.write("**********************************")
+    except IOError or TypeError or RuntimeError:
+        print("Log file not found!")
 
-    # Set dropout layers to eval mode
-    encoder.eval()
-    decoder.eval()
-
-    # Initialize search module
-    searcher = GreedySearchDecoder(encoder, decoder)
-
-    evaluateInput(encoder, decoder, searcher, input_lang, output_lang)

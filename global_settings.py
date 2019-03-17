@@ -11,6 +11,8 @@ MAX_LENGTH = 10
 TRAIN_FILE = "train.pkl"
 TEST_FILE = "test.pkl"
 
+LOG_FILE = "last_experiment.txt"
+
 
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
