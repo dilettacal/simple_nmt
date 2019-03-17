@@ -93,7 +93,6 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
     lengths = lengths.to(device)
     target_variable = target_variable.to(device)
     mask = mask.to(device)
-    trg_lengths = trg_lengths.to(device)  # RuntimeError: cuDNN error: CUDNN_STATUS_EXECUTION_FAILED
 
     # Initialize variables
     loss = 0
@@ -285,3 +284,16 @@ def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
 
         except KeyError:
             print("Error: Encountered unknown word.")
+
+
+#### Evaluation on test set
+
+def eval_test(test_batches, encoder, decoder):
+    total_loss = 0
+    for batch in test_batches:
+        test_inp_var, test_src_len, test_trg_var, test_mask, test_max_len, test_trg_len = batch
+
+        test_loss = eval(test_inp_var, test_src_len, test_trg_var, test_mask, test_max_len, test_trg_len, encoder, decoder,
+                    1)
+        total_loss+= test_loss
+    return total_loss/len(test_batches)

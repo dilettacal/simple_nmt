@@ -55,7 +55,7 @@ class Voc:
             if v >= min_count:
                 keep_words.append(k)
 
-        print('keep_words {} / {} = {:.4f}'.format(
+        print('Words kept for {} vocabulary: {} / {} = {:.4f}'.format(self.name,
             len(keep_words), len(self.word2index), len(keep_words) / len(self.word2index)
         ))
 
@@ -156,36 +156,6 @@ def batch2TrainData(src_voc, tar_voc, pair_batch):
     inp, lengths = inputVar(input_batch, src_voc)
     output, mask, max_target_len, out_lengths = outputVar(output_batch, tar_voc)
     return inp, lengths, output, mask, max_target_len, out_lengths
-
-############# Google colab example ##########
-#https://colab.research.google.com/drive/1uFJBO1pgsiFwCGIJwZlhUzaJ2srDbtw-#scrollTo=t4djvgil5bMQ
-
-def tensor_max_len(tensor):
-    return max(len(t) for t in tensor)
-
-
-def pad_sequences(x, max_len):
-    padded = np.zeros((max_len), dtype=np.int64)
-    if len(x) > max_len: padded[:] = x[:max_len]
-    else: padded[:len(x)] = x
-    return padded
-
-class CustomDataset(Dataset):
-    def __init__(self, src, trg):
-        self.src = src
-        self.trg = trg
-
-        self.len = [np.sum(1-np.equal(x,9)) for x in src]
-
-    def __getitem__(self, item):
-        x = self.src[item]
-        y = self.trg[item]
-
-        x_len = self.len[item]
-        return x, y, x_len
-
-    def __len__(self):
-        return len(self.src)
 
 
 

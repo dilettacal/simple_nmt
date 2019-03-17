@@ -44,8 +44,6 @@ def filter_pairs(pairs, len_tuple=None, filter_func=None):
         max_length = len_tuple[1]
         pairs = [pair for pair in pairs if len(pair[0]) >= min_length and len(pair[0]) <= max_length]
 
-    # print("Applied filter by length, min sentence length %s, max sentence length %s" % (min_length, max_length))
-
     if filter_func:
         pairs = [pair for pair in pairs if filter_func(pair[0]) or filter_func(pair[1])]
 
@@ -62,12 +60,29 @@ def maskNLLLoss(inp, target, mask):
     return loss, nTotal.item()
 
 
-def split_data(data, test_ratio=0.1):
+def split_data(data, test_ratio=0.2):
+    """
+    Splits data into training, validation and test set
+    :param data: all the dataset
+    :param test_ratio: actually the validation ratio
+    :return: 3 splits
+    """
     num_samples = len(data)
-    test_range = int(num_samples*test_ratio)
+    test_range = int(num_samples*test_ratio) #test dataset 0.1
     train_range = num_samples-test_range
     random.shuffle(data)
 
-    train_set = data[:train_range]
-    test_set = data[train_range:]
-    return train_set, test_set
+    data_set = data[:train_range]
+    val_set = data[train_range:]
+
+    #create test set
+    num_samples = len(data_set)
+    test_range = int(num_samples * 0.1)
+    train_range = num_samples - test_range
+
+    train_set = data_set[:train_range]
+    test_set = data_set[train_range:]
+
+    print(len(test_set) + len(train_set) + len(val_set))
+
+    return train_set, val_set, test_set
