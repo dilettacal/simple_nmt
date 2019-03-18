@@ -1,4 +1,4 @@
-# Simple Neural Machine Translator with PyTorch
+# Vanilla LSTM Neural Machine Translator with PyTorch
 
 Seminar Project in A.I. in the Robotics 
 Bachelor of Science - Angewwandte Informatik HTW Berlin
