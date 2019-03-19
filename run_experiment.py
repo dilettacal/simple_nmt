@@ -112,7 +112,7 @@ if __name__ == '__main__':
     teacher_forcing_ratio = 0.3
     learning_rate = 0.0001 #0.0001
     decoder_learning_ratio = 2.0 #5.0
-    n_iteration = 10000
+    n_iteration = 15000
     print_every = 100
     save_every = 500
 
