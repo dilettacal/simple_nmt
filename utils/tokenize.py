@@ -4,6 +4,11 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import torch
 
+"""
+Mostly inspired by and adapted from: 
+PyTorch Chatbot Tutorial: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
+"""
+
 PAD_token = 0  # Used for padding short sentences
 SOS_token = 1  # Start-of-sentence token
 EOS_token = 2  # End-of-sentence token
@@ -78,6 +83,7 @@ def build_vocab(sent_list, lang_name):
 #### Trimming dictioanry if they are too big
 
 def trimRareWords(voc, pairs, MIN_COUNT):
+    #https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
 
     # Trim words used under the MIN_COUNT from the voc
     voc.trim(MIN_COUNT)
