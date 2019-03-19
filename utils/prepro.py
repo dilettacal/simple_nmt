@@ -9,8 +9,25 @@ from utils.mappings import UMLAUT_MAP, ENG_CONTRACTIONS_MAP
 from utils.tokenize import SOS_token, EOS_token
 from global_settings import PREPRO_DIR
 
+""" 
+This script contains methods to preprocess text files.
+Mostly borrowed and then adapted to this task from: 
+- https://machinelearningmastery.com/develop-neural-machine-translation-system-keras/
+- https://machinelearningmastery.com/prepare-french-english-dataset-machine-translation/
+
+Adaptation for this task:
+- Tokens not simply reduced to their ASCII representation, but expanded according to local rules (see 'mappings.py')
+    - If no local rules are available, the ASCII reduction as normalization method is applied
+
+"""
 
 def read_lines(root, filename):
+    """
+    Read line given the file root and the file name
+    :param root: directory path
+    :param filename: filename
+    :return: Array of lines (parallel corpus)
+    """
     path = os.path.join(root, filename)
     with io.open(path, encoding="utf-8", closefd=True) as f:
         lines = f.readlines()
@@ -18,6 +35,11 @@ def read_lines(root, filename):
     return lines
 
 def reverse_language_pair(pairs):
+    """
+    To use after read_lines, this allows to reverse the language combination order
+    :param pairs:
+    :return:
+    """
     return [list(reversed(p)) for p in pairs]
 
 
@@ -132,6 +154,7 @@ def normalize_string(sentence):
 
 def reverse_order(token_list, reverse=True):
     """
+    This apply order reversing to a list of sequences, e.g. the source sentences.
     :param token_list:
     :param reverse: Flag
     :return: reversed token list or token list if filter is not to apply
@@ -142,12 +165,25 @@ def reverse_order(token_list, reverse=True):
 
 
 def save_clean_data(path, pairs, filename):
+    """
+    Saves the cleaned data as pickle file
+    :param path:
+    :param pairs:
+    :param filename:
+    :return:
+    """
     path_to_dir = os.path.join(path, filename)
     dump(pairs, open(path_to_dir, 'wb'))
     print('File %s saved in %s' % (filename, path_to_dir))
     return path_to_dir
 
 def load_cleaned_data(path, filename):
+    """
+    Loads pickle of cleaned files
+    :param path:
+    :param filename:
+    :return:
+    """
     path_to_file = os.path.join(path, filename)
     if(os.path.isfile(path_to_file)):
         return load(open(path_to_file, 'rb'))
@@ -156,7 +192,7 @@ def load_cleaned_data(path, filename):
 
 def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None, reverse_pairs=False):
     """
-    Assuming english as input language
+    Performs preprocessing in a single pipeline
     :param cleaned_file_to_store:
     :param exp_contraction:
     :param reverse_pairs:
