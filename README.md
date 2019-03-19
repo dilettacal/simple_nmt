@@ -9,30 +9,26 @@ Kurze Projektbeschreibung:
 ``` bash
 .
 ├── data
-│   ├── deu.txt
-│   ├── prepro
-├── download.sh
-├── experiment
+│   ├── deu.txt             # Here deu.txt file should be placed
+│   ├── prepro              # Stores all preprocessed pkl files
+├── download.sh             # download script
+├── experiment              # Stores experiment files (checkpoints, history, plots) and train_eval.py
 │   ├── checkpoints
 │   │   ├── plots
 │   ├── log_history.txt
 │   └── train_eval.py
-├── global_settings.py
-├── model
-│   ├── model.py
-├── notebooks
-│   └── Presentation.ipynb
-├── Pipfile
+├── global_settings.py      # defines global settings
+├── model                   # Model components
+│   ├── model.py            
+├── notebooks               # Jupyter notebooks
+│   └── Presentation.ipynb  
+├── Pipfile         
 ├── Pipfile.lock
 ├── README.md
-├── run_experiment.py
-├── structure.png
-├── structure.txt
-├── translate.py
-├── tutorial
-│   ├── chatbot_adaptation.ipynb
-│   ├── chatbot_tutorial.ipynb
-└── utils
+├── run_experiment.py       # main execution file
+├── translate.py            # translate.py
+├── tutorial                # tutorial
+└── utils                   # utilities, e.g. mappings, preprocessing, tokenization, general utils
     ├── mappings.py
     ├── prepro.py
     ├── tokenize.py
