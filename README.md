@@ -145,6 +145,7 @@ Verbesserungsvorschläge:
 
 - Batch training sollte verbessert werden, etwa durch die Verwendung der PyTorch-Datenstrukturen: `Dataset` und `DataLoader`.
     - Dabei muss aber die unterschiedliche Sequenzlänge berücksichtigt und für den `DataLoader` durch Überschreiben der `collate_fn` behandelt werden. Ansosnten verkürzt der DataLoader automatisch alle Daten im Batch auf die kürzeste Inputsequenz.
+    - Alternativ `torchtext` verwenden
 - Padding und Masking der Loss-Funktion:
     - PyTorch bietet zwei Packages für Loss-Funktionen:
         - `nn.functional`: Enthält Funktionen, wie z.B. `log_softmax` in Kombination mit `NLLLoss`
@@ -156,6 +157,39 @@ Was noch abgedeckt werden könnte:
 - ...
 
 ## 4. Exemplarische Ergebnisse
+
+Alle Experimente wurden auf Ubuntu 18.04 ausgeführt.
+Technische Ausstattung:
+- CPU: i7, hexa-core
+- GPU:  GeForce GTX 1070 
+    - Cuda Version: 10.0
+    - RAM: 8 GB
+    
+Beste Ergebnisse mit folgenden Einstellungen:
+
+- Datensatz reduziert auf: 50000 Exemplare
+- Input size: 6137
+- Output size: 10472
+- Embedding size: 512
+- Hidden size: 512
+- Encoder: 2 layers, dropout 0.5
+- Decoder: 2 layers, dropout 0.5
+- Batch size: 64
+- Iterationen: 10000
+- Teacher Forcing Ratio: 0.3
+- Learning rate: 0.0001 für Encoder, 0.0002 für Decoder
+
+Trainingszeit: 
+
+Plot der Trainings- und Validations-Durchschnittsloss durch die Iterationen:
+
+Beispielübersetzungen (vom Terminal):
+
+| Source        | Target           
+| ------------- |:-------------:
+| col 3 is      | right-aligned 
+| col 2 is      | centered      
+| zebra stripes | are neat      
 
 ## 5. Quellen
 
