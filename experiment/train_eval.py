@@ -405,8 +405,13 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
     """
     import matplotlib.pyplot as plt
 
+
     directory = os.path.join(save_dir, "plots", modelname, corpus_name,
                              '{}-{}_{}'.format(n_layers, n_layers, hidden_size))
+
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
+
     plt.plot(train_history)
     plt.plot(val_history)
     plt.title('model train vs validation loss')
@@ -414,7 +419,7 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
     plt.xlabel('iteration')
     plt.legend(['train', 'validation'], loc='upper right')
     if live_show: plt.show()
-    file = modelname+"_train_loss.png"
+    file = "train_loss.png"
     path_to_file = os.path.join(directory, file)
     plt.savefig(path_to_file)
     plt.close()
