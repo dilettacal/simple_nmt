@@ -7,7 +7,20 @@ Die vollständige Projektdokumentation befindet sich im Verzeichnis `documentati
 
 Kurze Projektbeschreibung:
 
-## 1. Projektstruktur
+## 1. Projekt
+### 1.1 Projektziele
+
+- Rekurrente neuronale Netze kennenlernen
+- Implementierung eines Vanilla LSTM Neuronalen Maschinenübersetzers
+- Anwendung des Frameworks PyTorch in Zusammenhang mit RNNs
+
+Erwartete Ergebnisse:
+
+Das Modell ist in der Lage, kurze Sätze zu übersetzen, wie z.B. "I am an engineer", "I live near you", "I love you", "how are you?", "what do you do?"
+
+
+### 1.2 Projektstruktur
+
 ``` bash
 .
 ├── data
@@ -80,13 +93,67 @@ Um den Übersetzer zu verlassen, `q` eingeben.
 
 Anpassung der Implementierungen vom PyTorch Chatbot Tutorial und der Keras Implementierung aus Machine Learning Mastery (s. Quellen).
 
+Phasen:
+
+1. Preprocessing: Hier wird der Datensatz so bereinigt, dass bei der Verwendung nur eine Tokenisierung mit der nativen python Funktion `split(" )` ausreicht.
+2. Dictionary: Für jede Sprache wird ein Objekt `Voc` erstellt. Es enthält ein Mapping zwischen den Wörtern im Datensatz und ihrer Indexposition. Das erlaubt die Umwandlung zwischen Strings und numerische Darstellung. Das Dictionary wird auf dem Trainingdatensatz gebildet.
+3. Datensatz gesplittet auf drei Datensätze: 70% Train, 20% Validation, 10% Test
+4. Modellkomponente:
+    - Hyperparameter: 
+        - hidden size (Anzahl der Neuronen in einer LSTM-Einheit), 
+        - embedding size (Dimensionalität der Wortdarstellung im Vektorraum), 
+        - n_layers (Anzahl der Layers im Modell)
+    - Feste Parameter: Input und output size. Diese beziehen sich jeweils auf die Vocabulary-Größe für die Input- und die Targetsprachen
+    - Encoder: input size, hidden size, embedding size 
+        - Embedding Layer(input_size, embedding_size)
+        - LSTM-Einheit (embedding_size, hidden_size)
+    - Decoder: output size, hidden size, embedding size
+        - Embedding (output_size, embedding_size)
+        - LSTM-Einheit (embedding_size, hidden_size)
+        - Linear Layer (hidden_size, output_size)
+        - Log-Softmax auf Ergebnis des Linear Layers
+5. Training: Batch-Training auf Training- und Validation-Dataset
+    - Hyperparameter:
+        - Learning rate: Default 0,0001
+        - Gradient clipping
+        - Batch size: Default 64
+        - Iterationen: 10000 (default)
+6. Evaluation: Auf Testdatensatz
+7. Logging: 
+    - Jedes Experiment geloggt und geplottet 
+
 Übernahme in dieses Projekt:
+
+- Trainingsverfahren
+- Vocabulary-Klasse
+- Vektorisierungsverfahren (Umwandlung Token > Indizes und umgekehrt)
+- Behandlung der Batches und des Paddings (Maskfunktion für die Loss-Berechnung)
+- Struktur des Encoders und Decoders (Der Decoder wurde downgraded zu einem Vanilla-Decoder)
+- Funktionen zum Speichern/Laden eines Modells
+- Evaluation aus Tastatur
 
 Erweiterungen:
 
+- Preprocessing verbessert
+- Statt nur eine Sprache (ausreichend für einen Chatbot), zwei Sprachen berücksichtigt
+- Keine besondere Filter auf den Sätzen
+- Batch-Training erweitert auf Training, Validation und Test Dataset
+- Allgemeine Programmstruktur deutlicher gemacht
+- Plotting
+
 Verbesserungsvorschläge:
 
+- Batch training sollte verbessert werden, etwa durch die Verwendung der PyTorch-Datenstrukturen: `Dataset` und `DataLoader`.
+    - Dabei muss aber die unterschiedliche Sequenzlänge berücksichtigt und für den `DataLoader` durch Überschreiben der `collate_fn` behandelt werden. Ansosnten verkürzt der DataLoader automatisch alle Daten im Batch auf die kürzeste Inputsequenz.
+- Padding und Masking der Loss-Funktion:
+    - PyTorch bietet zwei Packages für Loss-Funktionen:
+        - `nn.functional`: Enthält Funktionen, wie z.B. `log_softmax` in Kombination mit `NLLLoss`
+        - `nn`: Enthält Objekte, bzw. Wrapper um Loss-Funktionen, wie z.B. `CrossEntropyLoss`. Ab der neusten Version berechnet das `CrossEntropyLoss`intern sowohl `log_softmax`, als auch `NLLLoss`. Dem Objekt kann über das Parameter `ignore_index` mitgeteilt werden, welches Index automatisch bei der Loss-Berechnung nicht zu berücksichtigen ist. Normalerweise ist das das Padding-Idex. Dadurch kann ein separates Masking entfallen.
+
 Was noch abgedeckt werden könnte:
+- Attention
+- Bidirektionale LSTM oder Versuch, Input-Sequenzen umzudrehen ("I want to read a book" --> "book a read to want I")
+- ...
 
 ## 4. Exemplarische Ergebnisse
 
