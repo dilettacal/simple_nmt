@@ -4,10 +4,7 @@
 *.csv
 *.pkl
 *.h5
-
-#Special directories in project not relevant for the seminar project
-keras/my_experiment/*
-
+!experiment/checkpoints/plots/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -105,3 +102,5 @@ venv.bak/
 /data/deu-eng.zip
 .idea/
 /tutorial/keras/*
+tutorial/data/save/cb_model/cornell movie-dialogs corpus/
+tutorial/experiment/
