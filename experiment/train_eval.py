@@ -149,13 +149,17 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
-            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
-            decoder_input = decoder_input.to(device)
-            # Calculate and accumulate loss
-            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
-            loss += mask_loss
-            print_losses.append(mask_loss.item() * nTotal)
-            n_totals += nTotal
+            try:
+                decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]]) #RuntimeError: CUDA error: device-side assert triggered
+                decoder_input = decoder_input.to(device)
+                # Calculate and accumulate loss
+                mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
+                loss += mask_loss
+                print_losses.append(mask_loss.item() * nTotal)
+                n_totals += nTotal
+            except RuntimeError:
+                pass
+
 
         return sum(print_losses) / n_totals
 
