@@ -13,6 +13,23 @@ from utils.utils import maskNLLLoss
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
           encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5):
+    """
+    Performs a training step on a batch during training process
+    :param input_variable: batched tensor input
+    :param lengths: lengths of input variable
+    :param target_variable: batched tensor target
+    :param mask: masking for this input and target variables
+    :param max_target_len: maximum length in target
+    :param trg_lengths: lengths of the target variables (actually not used)
+    :param encoder: encoder
+    :param decoder: decoder
+    :param encoder_optimizer: encoder optimizer
+    :param decoder_optimizer: decoder optimizer
+    :param batch_size: batch size
+    :param clip: gradient clipping
+    :param teacher_forcing_ratio: frequency to use teacher forcing
+    :return: the train loss
+    """
     # Zero gradients
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
@@ -88,6 +105,19 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
 
 def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
           batch_size):
+    """
+    Performs evaluation on validation set during training iteration
+    :param input_variable: batched tensor input
+    :param lengths: lengths of input variable
+    :param target_variable: batched tensor target
+    :param mask: masking for this input and target variables
+    :param max_target_len: maximum length in target
+    :param trg_lengths: lengths of the target variables (actually not used)
+    :param encoder: encoder
+    :param decoder: decoder
+    :param batch_size: batch size
+    :return: validation loss
+    """
     # Set device options
     input_variable = input_variable.to(device)
     lengths = lengths.to(device)
@@ -133,6 +163,28 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
                save_every, clip, corpus_name):
+    """
+    This method defines the main training procedure
+    :param model_name: model name
+    :param src_voc: source vocabulary
+    :param tar_voc: target vocabulary
+    :param train_pairs: train set
+    :param val_pairs: validation set
+    :param encoder: encoder object
+    :param decoder: decoder object
+    :param encoder_optimizer: encoder optimizer, by default: Adam
+    :param decoder_optimizer: decoder optimizer, by default: Adam
+    :param encoder_n_layers: encoder number of layers
+    :param decoder_n_layers: decoder number of layers
+    :param save_dir: store directory path
+    :param n_iteration: number of iterations to be done
+    :param batch_size: batch size
+    :param print_every: frequency of printing results
+    :param save_every: storage frequency
+    :param clip: gradient clipping value
+    :param corpus_name: file name
+    :return: average validation loss, directory, train_history, val_history
+    """
     # Load batches for each iteration
     global directory
     directory = ""
@@ -152,6 +204,10 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     print_val_loss_avg = 0
     print_loss_avg = 0
 
+    ##### Store plot results
+    train_history = []
+    val_history = []
+
 
 
     for iteration in range(start_iteration, n_iteration + 1):
@@ -170,12 +226,17 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                      decoder, encoder_optimizer, decoder_optimizer, batch_size, clip)
         train_print_loss += train_loss
 
+        #### store results
+        train_history.append(train_loss)
+
         encoder.eval()
         decoder.eval()
 
         val_loss = eval(val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len, encoder, decoder, batch_size)
 
         val_print_loss += val_loss
+
+        val_history.append(val_loss)
 
         # Print progress
         if iteration % print_every == 0:
@@ -204,11 +265,14 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 'trg_embedding': decoder.embedding.state_dict()
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
 
-    return print_val_loss_avg, directory
+    return print_val_loss_avg, directory, train_history, val_history
 
 
 
 class GreedySearchDecoder(nn.Module):
+    """
+    This is a greedy searcher decoder, to use during inference
+    """
     def __init__(self, encoder, decoder):
         super(GreedySearchDecoder, self).__init__()
         self.encoder = encoder
@@ -243,6 +307,15 @@ class GreedySearchDecoder(nn.Module):
 ############# Evaluation ################
 
 def evaluate(searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
+    """
+    Util method to do evaluation
+    :param searcher: the searcher method. By Default it is a GreedySearcher
+    :param src_voc: the source vocabulary
+    :param trg_voc: the target vocabulary
+    :param sentence: the sentence to be translated
+    :param max_length: search max length
+    :return: Decoded words
+    """
     ### Format input sentence as a batch
     # words -> indexes
     indexes_batch = [indexesFromSentence(src_voc, sentence)]
@@ -263,6 +336,16 @@ def evaluate(searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
 ######## Inference from input ##############
 
 def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
+    """
+    Source: PyTorch Chatbot Tutorial
+    Reads a sentence as keyboard input and returns its translation
+    :param encoder:
+    :param decoder:
+    :param searcher:
+    :param src_voc:
+    :param trg_voc:
+    :return:
+    """
     print("Let's translate!")
     input_sentence = ''
     while(1):
@@ -289,6 +372,13 @@ def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
 #### Evaluation on test set
 
 def eval_test(test_batches, encoder, decoder):
+    """
+    Performs evaluation on test set
+    :param test_batches:
+    :param encoder:
+    :param decoder:
+    :return:
+    """
     total_loss = 0
     for batch in test_batches:
         test_inp_var, test_src_len, test_trg_var, test_mask, test_max_len, test_trg_len = batch
@@ -297,3 +387,34 @@ def eval_test(test_batches, encoder, decoder):
                     1)
         total_loss+= test_loss
     return total_loss/len(test_batches)
+
+#### Plot results
+
+def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, hidden_size, live_show=False):
+    """
+    Plots training results
+    :param modelname:
+    :param train_history:
+    :param val_history:
+    :param save_dir:
+    :param corpus_name:
+    :param n_layers:
+    :param hidden_size:
+    :param live_show:
+    :return: None, it stores the files or shows them
+    """
+    import matplotlib.pyplot as plt
+
+    directory = os.path.join(save_dir, "plots", modelname, corpus_name,
+                             '{}-{}_{}'.format(n_layers, n_layers, hidden_size))
+    plt.plot(train_history)
+    plt.plot(val_history)
+    plt.title('model train vs validation loss')
+    plt.ylabel('loss')
+    plt.xlabel('iteration')
+    plt.legend(['train', 'validation'], loc='upper right')
+    if live_show: plt.show()
+    file = modelname+"_train_loss.png"
+    path_to_file = os.path.join(directory, file)
+    plt.savefig(path_to_file)
+    plt.close()
