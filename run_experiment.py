@@ -1,11 +1,11 @@
 import os
 import random
 from pickle import load
-
+from datetime import datetime
 import torch
 from torch import optim
 
-from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters, eval_test
+from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters, eval_test, plot_training_results
 from global_settings import device, FILENAME, SAVE_DIR, PREPRO_DIR, TRAIN_FILE, TEST_FILE, EXPERIMENT_DIR, LOG_FILE
 from model.model import EncoderLSTM, DecoderLSTM
 from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data, save_clean_data
@@ -15,13 +15,10 @@ from global_settings import DATA_DIR
 from utils.utils import split_data, filter_pairs, max_length
 
 
-def define_model():
-    pass
-
-def run_experiment():
-    pass
 
 if __name__ == '__main__':
+
+    experiment_execution_time = datetime.now()
 
     start_root = "."
     src_lang = "eng"
@@ -91,14 +88,14 @@ if __name__ == '__main__':
 
     # Configure models
     model_name = ''
-    model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model'
+    model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model_full'
     hidden_size = 512
     encoder_n_layers = 1
     decoder_n_layers = 1
     batch_size = 64
     input_size = input_lang.num_words
     output_size = output_lang.num_words
-    embedding_size = 256
+    embedding_size = 512
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
@@ -113,9 +110,9 @@ if __name__ == '__main__':
 
     clip = 30.0
     teacher_forcing_ratio = 0.3
-    learning_rate = 0.0001 #0.0001
+    learning_rate = 0.001 #0.0001
     decoder_learning_ratio = 2.0 #5.0
-    n_iteration = 15000
+    n_iteration = 20000
     print_every = 100
     save_every = 500
 
@@ -127,10 +124,14 @@ if __name__ == '__main__':
 
     # Run training iterations
     print("Starting Training!")
-    val_loss, directory = trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
+    start_time = datetime.now()
+    val_loss, directory, train_history, val_history = trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                                      encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
                                      print_every, save_every, clip, FILENAME)
 
+    end_time = datetime.now()
+    duration = end_time-start_time
+    print('Training duration: {}'.format(duration))
 
     test_loss = eval_test(test_batches, encoder, decoder)
     print("Test loss:", test_loss)
@@ -140,20 +141,55 @@ if __name__ == '__main__':
     #Log file name
     try:
         with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), encoding="utf-8", mode="w") as f:
-            print("Logging to file...")
-            f.write("Experiment name:\n")
-            f.write(model_name)
-            f.write("\nDirectory:\n")
-            f.write(str(directory))
-            f.write("\n Max src length %s" %max_src_l)
-            f.write("\n Max trg length %s"%max_trg_l)
-            f.write("\nAverage validation loss:\n")
-            f.write(str(val_loss))
-            f.write("\nTest loss:")
-            f.write(str(test_loss))
-            f.write("\nTraining iterations:")
-            f.write(str(n_iteration))
-            f.write("\n**********************************")
+            with open(os.path.join(start_root, EXPERIMENT_DIR, "log_history.txt"), encoding="utf-8", mode="a") as hf:
+                print("Logging to file...")
+                f.write("Execution date: %s" %str(experiment_execution_time))
+                f.write("Experiment name:\n")
+                f.write(model_name)
+                f.write("\nDirectory:\n")
+                f.write(str(directory))
+                f.write("\n Number of samples:")
+                f.write(str(len(pairs)))
+                f.write("\n Max src length %s" %max_src_l)
+                f.write("\n Max trg length %s"%max_trg_l)
+                f.write("\n Learning rate: %s" % str(learning_rate))
+                f.write("\nAverage validation loss:\n")
+                f.write(str(val_loss))
+                f.write("\nTest loss:")
+                f.write(str(test_loss))
+                f.write("\nTraining iterations:")
+                f.write(str(n_iteration))
+                f.write("\n Training duration:")
+                f.write(str(duration))
+                f.write("\n**********************************\n")
+
+                hf.write("Execution date: %s" % str(experiment_execution_time))
+                hf.write("Experiment name:\n")
+                hf.write(model_name)
+                hf.write("\nDirectory:\n")
+                hf.write(str(directory))
+                hf.write("\n Number of samples:")
+                hf.write(str(len(pairs)))
+                hf.write("\n Max src length %s" % max_src_l)
+                hf.write("\n Max trg length %s" % max_trg_l)
+                hf.write("\n Learning rate: %s" %str(learning_rate))
+                hf.write("\nAverage validation loss:\n")
+                hf.write(str(val_loss))
+                hf.write("\nTest loss:")
+                hf.write(str(test_loss))
+                hf.write("\nTraining iterations:")
+                hf.write(str(n_iteration))
+                hf.write("\n Training duration:")
+                hf.write(str(duration))
+                hf.write("\n**********************************\n")
     except IOError or TypeError or RuntimeError:
         print("Log to file failed!")
 
+    print("Plotting results...")
+    try:
+        plot_training_results(model_name, train_history, val_history, SAVE_DIR, FILENAME, decoder_n_layers, hidden_size,
+                          live_show=False)
+        print("Plots stored in %s" %SAVE_DIR)
+
+    except IOError or RuntimeError:
+        pass

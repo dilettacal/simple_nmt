@@ -1,21 +1,5 @@
 """
-Model is saved:
-
-
-torch.save({
-                'iteration': iteration,
-                'en': encoder.state_dict(),
-                'de': decoder.state_dict(),
-                'en_opt': encoder_optimizer.state_dict(),
-                'de_opt': decoder_optimizer.state_dict(),
-                'loss': val_loss,
-                'src_dict': src_voc.__dict__,
-                'tar_dict': tar_voc.__dict__,
-                'src_embedding': encoder.embedding.state_dict(),
-                'trg_embedding': decoder.embedding.state_dict()
-            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
-
-Directory:
+Loads the model and translate given a keyboard input
 experiment/checkpoints/simple_nmt_model30000/deu.txt/1-1_256
 
 """
@@ -29,27 +13,28 @@ from global_settings import EXPERIMENT_DIR, LOG_FILE, device
 from model.model import EncoderLSTM, DecoderLSTM
 from utils.tokenize import Voc
 
-if __name__ == '__main__':
-
-    start_root = "."
+def translate(start_root):
+   # start_root = "."
 
     print("Reading experiment information...")
     with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), mode="r", encoding="utf-8") as f:
         lines = f.readlines()
 
     experiment_path = [line.strip() for line in lines if "experiment/" in line]
-  #  print(experiment_path[0])
+    print(experiment_path)
+    #  print(experiment_path[0])
     hidden_size = int(experiment_path[0].split("_")[-1])
-   # print(hidden_size)
-    checkpoints = [f for f in os.listdir(os.path.join(start_root, experiment_path[0])) if os.path.isfile(os.path.join(start_root, experiment_path[0], f))]
+    # print(hidden_size)
+    checkpoints = [f for f in os.listdir(os.path.join(start_root, experiment_path[0])) if
+                   os.path.isfile(os.path.join(start_root, experiment_path[0], f))]
     last_checkpoint = checkpoints[-1]
 
-    #Load model
+    # Load model
     checkpoint = torch.load(os.path.join(start_root, experiment_path[0], last_checkpoint))
-    assert checkpoint
+    # assert checkpoint
 
     enc = checkpoint['en']
-    dec= checkpoint['de']
+    dec = checkpoint['de']
     src_vocab = checkpoint['src_dict']
     trg_vocab = checkpoint['tar_dict']
     src_emb = checkpoint['src_embedding']
@@ -71,8 +56,8 @@ if __name__ == '__main__':
     src_embedding = nn.Embedding(input_size, emb_dim, _weight=src_emb['weight'])
     trg_embedding = nn.Embedding(output_size, emb_dim, _weight=trg_emb['weight'])
 
-    encoder = EncoderLSTM(input_size,emb_size=emb_dim,hidden_size=hidden_size)
-    decoder = DecoderLSTM(output_size,emb_size=emb_dim, hidden_size=hidden_size)
+    encoder = EncoderLSTM(input_size, emb_size=emb_dim, hidden_size=hidden_size)
+    decoder = DecoderLSTM(output_size, emb_size=emb_dim, hidden_size=hidden_size)
 
     encoder.load_state_dict(enc)
     decoder.load_state_dict(dec)
@@ -93,3 +78,7 @@ if __name__ == '__main__':
 
     evaluateInput(encoder, decoder, searcher, src_voc, trg_voc)
 
+
+if __name__ == '__main__':
+
+    translate(".")
