@@ -44,7 +44,7 @@ if __name__ == '__main__':
     print("Sample from data:")
     print(random.choice(pairs))
 
-    limit = None
+    limit = 50000
 
     if limit:
         pairs = pairs[:limit]
@@ -90,8 +90,8 @@ if __name__ == '__main__':
     model_name = ''
     model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model_full'
     hidden_size = 512
-    encoder_n_layers = 1
-    decoder_n_layers = 1
+    encoder_n_layers = 2
+    decoder_n_layers = 2
     batch_size = 64
     input_size = input_lang.num_words
     output_size = output_lang.num_words
@@ -110,9 +110,9 @@ if __name__ == '__main__':
 
     clip = 50.0
     teacher_forcing_ratio = 0.3
-    learning_rate = 0.001 #0.0001
+    learning_rate = 0.0001 #0.0001
     decoder_learning_ratio = 2.0 #5.0
-    n_iteration = 35000
+    n_iteration = 10000
     print_every = 100
     save_every = 500
 
@@ -141,47 +141,29 @@ if __name__ == '__main__':
     #Log file name
     try:
         with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), encoding="utf-8", mode="w") as f:
-            with open(os.path.join(start_root, EXPERIMENT_DIR, "log_history.txt"), encoding="utf-8", mode="a") as hf:
-                print("Logging to file...")
-                f.write("Execution date: %s" %str(experiment_execution_time))
-                f.write("Experiment name:\n")
-                f.write(model_name)
-                f.write("\nDirectory:\n")
-                f.write(str(directory))
-                f.write("\n Number of samples:")
-                f.write(str(len(pairs)))
-                f.write("\n Max src length %s" %max_src_l)
-                f.write("\n Max trg length %s"%max_trg_l)
-                f.write("\n Learning rate: %s" % str(learning_rate))
-                f.write("\nAverage validation loss:\n")
-                f.write(str(val_loss))
-                f.write("\nTest loss:")
-                f.write(str(test_loss))
-                f.write("\nTraining iterations:")
-                f.write(str(n_iteration))
-                f.write("\n Training duration:")
-                f.write(str(duration))
-                f.write("\n**********************************\n")
-
-                hf.write("Execution date: %s" % str(experiment_execution_time))
-                hf.write("Experiment name:\n")
-                hf.write(model_name)
-                hf.write("\nDirectory:\n")
-                hf.write(str(directory))
-                hf.write("\n Number of samples:")
-                hf.write(str(len(pairs)))
-                hf.write("\n Max src length %s" % max_src_l)
-                hf.write("\n Max trg length %s" % max_trg_l)
-                hf.write("\n Learning rate: %s" %str(learning_rate))
-                hf.write("\nAverage validation loss:\n")
-                hf.write(str(val_loss))
-                hf.write("\nTest loss:")
-                hf.write(str(test_loss))
-                hf.write("\nTraining iterations:")
-                hf.write(str(n_iteration))
-                hf.write("\n Training duration:")
-                hf.write(str(duration))
-                hf.write("\n**********************************\n")
+            #Logging to last_experiment.txt
+            f.write(str(directory))
+        with open(os.path.join(start_root, EXPERIMENT_DIR, "log_history.txt"), encoding="utf-8", mode="a") as hf:
+            #Logging in the history document
+            hf.write("Execution date: %s" % str(experiment_execution_time))
+            hf.write("\nExperiment name:\n")
+            hf.write(model_name)
+            hf.write("\nDirectory:\n")
+            hf.write(str(directory))
+            hf.write("\n Number of samples:")
+            hf.write(str(len(pairs)))
+            hf.write("\n Max src length %s" % max_src_l)
+            hf.write("\n Max trg length %s" % max_trg_l)
+            hf.write("\n Learning rate: %s" % str(learning_rate))
+            hf.write("\nAverage validation loss:\n")
+            hf.write(str(val_loss))
+            hf.write("\nTest loss:")
+            hf.write(str(test_loss))
+            hf.write("\nTraining iterations:")
+            hf.write(str(n_iteration))
+            hf.write("\n Training duration:")
+            hf.write(str(duration))
+            hf.write("\n**********************************\n")
     except IOError or TypeError or RuntimeError:
         print("Log to file failed!")
 

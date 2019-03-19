@@ -41,6 +41,7 @@ def translate(start_root):
     trg_emb = checkpoint['trg_embedding']
     enc_optimizer = checkpoint['en_opt']
     dec_optimzier = checkpoint['de_opt']
+    layers = checkpoint['n_layers']
 
     src_voc = Voc("eng")
     trg_voc = Voc("deu")
@@ -56,8 +57,8 @@ def translate(start_root):
     src_embedding = nn.Embedding(input_size, emb_dim, _weight=src_emb['weight'])
     trg_embedding = nn.Embedding(output_size, emb_dim, _weight=trg_emb['weight'])
 
-    encoder = EncoderLSTM(input_size, emb_size=emb_dim, hidden_size=hidden_size)
-    decoder = DecoderLSTM(output_size, emb_size=emb_dim, hidden_size=hidden_size)
+    encoder = EncoderLSTM(input_size, emb_size=emb_dim, hidden_size=hidden_size, n_layers=layers)
+    decoder = DecoderLSTM(output_size, emb_size=emb_dim, hidden_size=hidden_size, n_layers=layers)
 
     encoder.load_state_dict(enc)
     decoder.load_state_dict(dec)

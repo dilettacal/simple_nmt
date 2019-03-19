@@ -251,6 +251,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             train_print_loss = 0
             val_print_loss = 0
 
+        layers = encoder.n_layers
         # Save checkpoint
         if (iteration % save_every == 0):
             directory = os.path.join(save_dir, model_name, corpus_name, '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, encoder.hidden_size))
@@ -266,7 +267,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 'src_dict': src_voc.__dict__,
                 'tar_dict': tar_voc.__dict__,
                 'src_embedding': encoder.embedding.state_dict(),
-                'trg_embedding': decoder.embedding.state_dict()
+                'trg_embedding': decoder.embedding.state_dict(),
+                'n_layers': layers # Layer numbers the same for both components
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
 
     return print_val_loss_avg, directory, train_history, val_history
