@@ -6,6 +6,38 @@ Bachelor of Science - Angewwandte Informatik HTW Berlin
 Kurze Projektbeschreibung:
 
 ## 1. Projektstruktur
+``` bash
+.
+├── data
+│   ├── deu.txt
+│   ├── prepro
+├── download.sh
+├── experiment
+│   ├── checkpoints
+│   │   ├── plots
+│   ├── log_history.txt
+│   └── train_eval.py
+├── global_settings.py
+├── model
+│   ├── model.py
+├── notebooks
+│   └── Presentation.ipynb
+├── Pipfile
+├── Pipfile.lock
+├── README.md
+├── run_experiment.py
+├── structure.png
+├── structure.txt
+├── translate.py
+├── tutorial
+│   ├── chatbot_adaptation.ipynb
+│   ├── chatbot_tutorial.ipynb
+└── utils
+    ├── mappings.py
+    ├── prepro.py
+    ├── tokenize.py
+    └── utils.py
+```
 
 ## 2. Programm verwenden
 
