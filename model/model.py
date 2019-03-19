@@ -6,8 +6,7 @@ import torch.nn.functional as F
 Model components:
 Encoder and Decoder based on LSTMs.
 Code inpsired by PyTorch Chatbot Tutorial:https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
-
-
+Adaptation: Vanilla Encoder/Decoder, without attention and with LSTM cell instead of GRUs
 """
 
 class EncoderLSTM(nn.Module):
