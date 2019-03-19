@@ -90,12 +90,12 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
 
-    # Perform backpropatation
-    loss.backward()
-
-    # Clip gradients: gradients are modified in place
+        # Clip gradients: gradients are modified in place
     _ = torch.nn.utils.clip_grad_norm_(encoder.parameters(), clip)
     _ = torch.nn.utils.clip_grad_norm_(decoder.parameters(), clip)
+
+    # Perform backpropatation
+    loss.backward()
 
     # Adjust model weights
     encoder_optimizer.step()

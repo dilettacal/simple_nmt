@@ -108,9 +108,9 @@ if __name__ == '__main__':
     print(encoder)
     print(decoder)
 
-    clip = 50.0
+    clip = 1.0
     teacher_forcing_ratio = 0.3
-    learning_rate = 0.0001 #0.0001
+    learning_rate = 0.001 #0.0001
     decoder_learning_ratio = 2.0 #5.0
     n_iteration = 15000
     print_every = 100
