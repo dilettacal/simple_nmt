@@ -27,6 +27,10 @@ if __name__ == '__main__':
     src_reversed = False
     limit = None
     trimming = False
+    #len_filter = [1, 10]
+    len_filter = None
+
+    voc_all = True
 
     cleaned_file = "%s-%s_cleaned" % (src_lang, trg_lang) + "_rude" if not exp_contraction else "%s-%s_cleaned" % (
         src_lang, trg_lang) + "_full"
@@ -40,16 +44,22 @@ if __name__ == '__main__':
         pairs = read_lines(os.path.join(start_root, DATA_DIR), FILENAME)
         pairs, path = preprocess_pipeline(pairs, cleaned_file, exp_contraction) #data/prepro/eng-deu_cleaned_full.pkl
 
-
     print("Sample from data:")
     print(random.choice(pairs))
+
+    if voc_all:
+        # build vocabularies based on all data set (test set included)
+        src_sents = [item[0] for item in pairs]
+        trg_sents = [item[1] for item in pairs]
 
     limit = 50000
 
     if limit:
         pairs = pairs[:limit]
 
-    train_set, val_set, test_set = split_data(pairs)
+    pairs = filter_pairs(pairs, len_tuple=len_filter)
+
+    train_set, val_set, test_set = split_data(pairs, seed=40)
 
     print("Data in train set:", len(train_set))
     print("Data in val set:", len(val_set))
@@ -59,9 +69,11 @@ if __name__ == '__main__':
     print("Building vocabularies...")
     train_data = train_set+val_set
 
-    # Build vocabularies based on dataset
-    src_sents = [item[0] for item in train_data]
-    trg_sents = [item[1] for item in train_data]
+
+    if voc_all is None:
+        # Build vocabularies based on train set
+        src_sents = [item[0] for item in train_data]
+        trg_sents = [item[1] for item in train_data]
 
     max_src_l = max_length(src_sents)
     max_trg_l = max_length(trg_sents)
@@ -86,13 +98,15 @@ if __name__ == '__main__':
     test_batches = [batch2TrainData(input_lang, output_lang, [random.choice(test_set) for _ in range(1)])
                         for _ in range(len(test_set))]
 
+    print("Test batches:", len(test_batches))
+
     # Configure models
     model_name = ''
     model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model_full'
     hidden_size = 512
-    encoder_n_layers = 2
-    decoder_n_layers = 2
-    batch_size = 64
+    encoder_n_layers = 1
+    decoder_n_layers = 1
+    batch_size = 128
     input_size = input_lang.num_words
     output_size = output_lang.num_words
     embedding_size = 512
@@ -108,10 +122,10 @@ if __name__ == '__main__':
     print(encoder)
     print(decoder)
 
-    clip = 1.0
+    clip = None
     teacher_forcing_ratio = 0.3
     learning_rate = 0.001 #0.0001
-    decoder_learning_ratio = 2.0 #5.0
+    decoder_learning_ratio = 1.0 #5.0
     n_iteration = 15000
     print_every = 100
     save_every = 500
@@ -150,15 +164,21 @@ if __name__ == '__main__':
             hf.write(model_name)
             hf.write("\nDirectory:\n")
             hf.write(str(directory))
-            hf.write("\n Number of samples:")
-            hf.write(str(len(pairs)))
-            hf.write("\n Max src length %s" % max_src_l)
-            hf.write("\n Max trg length %s" % max_trg_l)
-            hf.write("\n Learning rate: %s" % str(learning_rate))
-            hf.write("\nAverage validation loss:\n")
-            hf.write(str(val_loss))
-            hf.write("\nTest loss:")
-            hf.write(str(test_loss))
+            hf.write("\n Number of samples: %s" %str(len(pairs)))
+            if voc_all:
+                hf.write("\nVocabularies built on all dataset")
+            else:
+                hf.write("\nVocabularies built only on the train set")
+            hf.write("\nSource vocabulary: %s" % str(input_lang.num_words))
+            hf.write("\nTarget vocabulary: %s" % str(output_lang.num_words))
+            hf.write("\nMax src length %s" % max_src_l)
+            hf.write("\nMax trg length %s" % max_trg_l)
+            hf.write("\nLearning rate: %s" % str(learning_rate))
+            hf.write("\nBatch size: %s" % str(batch_size))
+            hf.write("\nEmbedding size: %s" % str(embedding_size))
+            hf.write("\nHidden size: %s" % str(hidden_size))
+            hf.write("\nAverage validation loss: %s" %str(val_loss))
+            hf.write("\nTest loss: %s" %str(test_loss))
             hf.write("\nTraining iterations:")
             hf.write(str(n_iteration))
             hf.write("\n Training duration:")
@@ -169,7 +189,7 @@ if __name__ == '__main__':
 
     print("Plotting results...")
     try:
-        plot_training_results(model_name, train_history, val_history, SAVE_DIR, FILENAME, decoder_n_layers, hidden_size,
+        plot_training_results(model_name, train_history, val_history, SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size,
                           live_show=False)
         print("Plots stored in %s" %SAVE_DIR)
 

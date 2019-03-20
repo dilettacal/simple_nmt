@@ -23,7 +23,8 @@ def translate(start_root):
     experiment_path = [line.strip() for line in lines if "experiment/" in line]
     print(experiment_path)
     #  print(experiment_path[0])
-    hidden_size = int(experiment_path[0].split("_")[-1])
+    hidden_size = "".join(experiment_path[0].split("_")).split("-")
+    hidden_size = int(hidden_size[-1])
     # print(hidden_size)
     checkpoints = [f for f in os.listdir(os.path.join(start_root, experiment_path[0])) if
                    os.path.isfile(os.path.join(start_root, experiment_path[0], f))]

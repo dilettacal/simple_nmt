@@ -90,12 +90,13 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
 
-        # Clip gradients: gradients are modified in place
-    _ = torch.nn.utils.clip_grad_norm_(encoder.parameters(), clip)
-    _ = torch.nn.utils.clip_grad_norm_(decoder.parameters(), clip)
 
     # Perform backpropatation
     loss.backward()
+    if clip:
+        # Clip gradients: gradients are modified in place
+        _ = torch.nn.utils.clip_grad_norm_(encoder.parameters(), max_norm=clip)
+        _ = torch.nn.utils.clip_grad_norm_(decoder.parameters(), max_norm=clip)
 
     # Adjust model weights
     encoder_optimizer.step()
@@ -254,7 +255,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         layers = encoder.n_layers
         # Save checkpoint
         if (iteration % save_every == 0):
-            directory = os.path.join(save_dir, model_name, corpus_name, '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, encoder.hidden_size))
+            directory = os.path.join(save_dir, model_name, corpus_name,
+                                     '{}-{}_{}-{}'.format(encoder_n_layers, decoder_n_layers, encoder.emb_size, encoder.hidden_size))
             if not os.path.exists(directory):
                 os.makedirs(directory)
             torch.save({
@@ -396,7 +398,7 @@ def eval_test(test_batches, encoder, decoder):
 
 #### Plot results
 
-def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, hidden_size, live_show=False):
+def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, live_show=False):
     """
     Plots training results
     :param modelname:
@@ -413,7 +415,7 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
 
 
     directory = os.path.join(save_dir, "plots", modelname, corpus_name,
-                             '{}-{}_{}'.format(n_layers, n_layers, hidden_size))
+                             '{}-{}_{}-{}'.format(n_layers, n_layers, embedding_size, hidden_size))
 
     if not os.path.isdir(directory):
         os.makedirs(directory)

@@ -78,7 +78,7 @@ def maskNLLLoss(inp, target, mask):
     return loss, nTotal.item()
 
 
-def split_data(data, test_ratio=0.2):
+def split_data(data, test_ratio=0.2, seed=40):
     """
     Splits data into training, validation and test set.
     Train set: 70%
@@ -92,7 +92,7 @@ def split_data(data, test_ratio=0.2):
     num_samples = len(data)
     test_range = int(num_samples*test_ratio) #test dataset 0.1
     train_range = num_samples-test_range
-    random.seed(30)
+    random.seed(seed) #30
     random.shuffle(data)
 
     data_set = data[:train_range]
