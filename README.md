@@ -134,7 +134,7 @@ Phasen:
 
 Erweiterungen:
 
-- Preprocessing verbessert
+- Preprocessing
 - Statt nur eine Sprache (ausreichend für einen Chatbot), zwei Sprachen berücksichtigt
 - Keine besondere Filter auf den Sätzen
 - Batch-Training erweitert auf Training, Validation und Test Dataset
@@ -167,6 +167,8 @@ Technische Ausstattung:
     
 Beste Ergebnisse mit folgenden Einstellungen:
 
+###### TODO: Richtige Angaben :-)
+
 - Datensatz reduziert auf: 50000 Exemplare
 - Input size: 6137
 - Output size: 10472
@@ -197,7 +199,7 @@ Papers/Bücher/Online-Beiträge:
 - ...
 - ...
 
-Meist verwendete Code-Quellen sind:
+Code-Quellen:
 
 - PyTorch Chatbot Tutorial, Chatbot Tutorial: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html 
 - Machine Learning Mastery, How to Develop a Neural Machine Translation System from Scratch: https://machinelearningmastery.com/develop-neural-machine-translation-system-keras/
