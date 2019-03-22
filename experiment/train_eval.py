@@ -194,6 +194,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     global directory
     directory = ""
 
+    random.seed(1)
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
                       for _ in range(n_iteration)]
 

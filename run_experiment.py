@@ -123,10 +123,10 @@ if __name__ == '__main__':
     print(decoder)
 
     clip = None
-    teacher_forcing_ratio = 0.3
+    teacher_forcing_ratio = 0.4
     learning_rate = 0.000001 #0.0001
     decoder_learning_ratio = 1.0 #5.0
-    n_iteration = 5000
+    n_iteration = 20000
     val_iteration = n_iteration
     print_every = 100
     save_every = 500
