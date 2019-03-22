@@ -109,7 +109,7 @@ if __name__ == '__main__':
     batch_size = 128
     input_size = input_lang.num_words
     output_size = output_lang.num_words
-    embedding_size = 512
+    embedding_size = 256
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
@@ -124,11 +124,15 @@ if __name__ == '__main__':
 
     clip = None
     teacher_forcing_ratio = 0.3
-    learning_rate = 0.001 #0.0001
+    learning_rate = 0.000001 #0.0001
     decoder_learning_ratio = 1.0 #5.0
-    n_iteration = 15000
+    n_iteration = 5000
+    val_iteration = n_iteration
     print_every = 100
     save_every = 500
+
+    print("Training iterations: ", n_iteration)
+    print("Iteration on validation set: ", val_iteration)
 
     # Initialize optimizers
     print('Building optimizers ...')
@@ -141,7 +145,7 @@ if __name__ == '__main__':
     start_time = datetime.now()
     val_loss, directory, train_history, val_history = trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                                      encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-                                     print_every, save_every, clip, FILENAME)
+                                     print_every, save_every, clip, FILENAME, val_iteration)
 
     end_time = datetime.now()
     duration = end_time-start_time

@@ -167,7 +167,7 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
 def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, decoder,
                encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
-               save_every, clip, corpus_name):
+               save_every, clip, corpus_name, val_iterations):
     """
     This method defines the main training procedure
     :param model_name: model name
@@ -199,7 +199,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
     # Load batches for each iteration
     validation_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(batch_size)])
-                        for _ in range(n_iteration)]
+                        for _ in range(val_iterations)]
 
     # Initializations
     print('Initializing ...')
@@ -215,9 +215,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
 
 
-    for iteration in range(start_iteration, n_iteration + 1):
+    for iteration in range(start_iteration, n_iteration-1):
         #Get the actual batch
-        training_batch = training_batches[iteration - 1]
+        training_batch = training_batches[iteration-1]
         val_batch = validation_batches[iteration-1]
 
         # Extract fields from batch
