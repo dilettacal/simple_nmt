@@ -216,7 +216,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
 
 
-    for iteration in range(start_iteration, n_iteration-1):
+    for iteration in range(start_iteration, n_iteration):
         #Get the actual batch
         training_batch = training_batches[iteration-1]
         val_batch = validation_batches[iteration-1]

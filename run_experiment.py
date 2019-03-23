@@ -106,7 +106,7 @@ if __name__ == '__main__':
     hidden_size = 512
     encoder_n_layers = 1
     decoder_n_layers = 1
-    batch_size = 128
+    batch_size = 24
     input_size = input_lang.num_words
     output_size = output_lang.num_words
     embedding_size = 256
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     clip = None
     teacher_forcing_ratio = 0.4
-    learning_rate = 0.000001 #0.0001
+    learning_rate = 0.0001 #0.0001
     decoder_learning_ratio = 1.0 #5.0
     n_iteration = 20000
     val_iteration = n_iteration
