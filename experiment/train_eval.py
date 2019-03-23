@@ -91,9 +91,6 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
-            if decoder_input.item() == EOS_token:
-                break
-
 
     # Perform backpropatation
     loss.backward()
@@ -314,7 +311,7 @@ class GreedySearchDecoder(nn.Module):
             all_tokens = torch.cat((all_tokens, decoder_input), dim=0)
             all_scores = torch.cat((all_scores, decoder_scores), dim=0)
             # Prepare current token to be next decoder input (add a dimension)
-            decoder_input = torch.unsqueeze(decoder_input, 0)
+            decoder_input = torch.unsqueeze(decoder_input, 0).detach()
         # Return collections of word tokens and scores
         return all_tokens, all_scores
 
