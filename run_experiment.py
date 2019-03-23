@@ -16,14 +16,23 @@ from global_settings import DATA_DIR
 from utils.utils import split_data, filter_pairs, max_length
 
 
+def str2bool(v):
+    #https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 if __name__ == '__main__':
 
     ##### ArgumentParser ###########
 
     parser = argparse.ArgumentParser(description='PyTorch Vanilla LSTM Machine Translator')
-    parser.add_argument('--data', type=str, default='./data/',
-                        help='location of the data corpus')
+    #parser.add_argument('--data', type=str, default='./data/',
+                      #  help='location of the data corpus. Default in ./data/')
 
     parser.add_argument('--emb', type=int, default=256,
                         help='size of word embeddings')
@@ -43,28 +52,32 @@ if __name__ == '__main__':
     parser.add_argument('--iterations', type=int, default=15000,
                         help='number of iterations')
 
-    parser.add_argument('--batch_size', type=int, default=24, metavar='N',
-                        help='batch size')
+    parser.add_argument('--batch_size', type=int, default=24, help='batch size')
 
     parser.add_argument('--teacher', type=float, default=0.4, help="Teacher forcing ration during training phase")
 
-    parser.add_argument('--limit', type=int, default=10000, metavar='N', help='Reduce dataset to N samples')
+    parser.add_argument('--limit', type=int, default=10000,help='Reduce dataset to N samples')
 
-    parser.add_argument('--voc_all', dest='voc_all', action='store_true', help='Get vocabulary from all dataset (true) or only from training data (false)')
-    parser.set_defaults(voc_all=True)
+    #parser.add_argument('--voc_all', dest='voc_all', action='store_true', help=' data (false)')
+   # parser.set_defaults(voc_all=True)
+
+    parser.add_argument('--dec_lr', type=int, default=1, help="Decoder learning rate decay. This must be provided as integer, as it is multiplied by the learning rate (lr)")
+
+    parser.add_argument('--voc_all', type=str2bool, nargs='?',
+                        const=True, default="True",
+                        help="Get vocabulary from all dataset (true) or only from training data (false).\n"
+                             "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
     parser.add_argument('--dropout', type=float, default=0.2,
-                        help='dropout applied to layers (0 = no dropout)')
+                        help='dropout applied to layers (0.0 = no dropout). Values range allowed: [0.0 - 1.0]')
 
     parser.add_argument('--seed', type=int, default=1111,
                         help='random seed')
 
-    parser.add_argument('--cuda', dest="cuda",action='store_true',
-                        help='use CUDA')
-    parser.set_defaults(cuda=True)
+    parser.add_argument('--cuda', type=str2bool, default="true", help="use CUDA.\n"
+                                                                      "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
-    parser.add_argument('--log', type=int, default=100, metavar='N',
-                        help='report interval')
+    parser.add_argument('--log', type=int, default=100, help='report interval')
 
     args = parser.parse_args()
 
@@ -172,11 +185,12 @@ if __name__ == '__main__':
     input_size = input_lang.num_words
     output_size = output_lang.num_words
     embedding_size = args.emb
+    dropout = args.dropout
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
-                         n_layers=encoder_n_layers)
-    decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers)
+                         n_layers=encoder_n_layers, dropout=dropout)
+    decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers, dropout=dropout)
 
     encoder = encoder.to(device)
     decoder = decoder.to(device)
@@ -191,6 +205,7 @@ if __name__ == '__main__':
     n_iteration = args.iterations
     val_iteration = n_iteration
     print_every = args.log
+
     save_every = 500
 
     print("Training iterations: ", n_iteration)
