@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import SubsetRandomSampler
 
 from global_settings import device, USE_CUDA
+import matplotlib.pyplot as plt
 
 # Source: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
 # If preprocessing is done with "expand_contractions" flag set to True,
@@ -109,3 +110,32 @@ def split_data(data, test_ratio=0.2, seed=40):
     print(len(test_set) + len(train_set) + len(val_set))
 
     return train_set, val_set, test_set
+
+
+def plot_grad_flow(encoder_named_parameters, decoder_named_parameters):
+    encoder_avg_grads = []
+    encoder_layers = []
+
+    ### Plotting both figuers side by side
+
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+    ax1.plot(x, y)
+    ax1.set_title('Sharing Y axis')
+    ax2.scatter(x, y)
+
+    for n, p in encoder_named_parameters:
+        if(p.requires_grad) and ("bias" not in n):
+            encoder_layers.append(n)
+            encoder_avg_grads.append(p.grad.abs().mean())
+
+    plt.plot(encoder_avg_grads, alpha=0.3, color="b")
+    plt.hlines(0, 0, len(encoder_avg_grads)+1, linewidth=1, color="k" )
+    plt.xticks(range(0,len(encoder_avg_grads), 1), encoder_layers, rotation="vertical")
+    plt.xlim(xmin=0, xmax=len(encoder_avg_grads))
+    plt.xlabel("Layers")
+    plt.ylabel("average gradient")
+    plt.title("Gradient flow")
+    plt.grid(True)
+    plt.savefig("./gradients/")
+    plt.close()
+

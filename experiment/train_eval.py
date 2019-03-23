@@ -12,7 +12,7 @@ from utils.utils import maskNLLLoss
 
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
-          encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5):
+          encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5, detach_all=True):
     """
     Performs a training step on a batch during training process
     :param input_variable: batched tensor input
@@ -84,8 +84,15 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
-            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]]).detach()
+            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
             decoder_input = decoder_input.to(device)
+            if detach_all:
+                #detach everything by now
+                decoder_input = decoder_input.detach()
+            else:
+                #Detach only the first K elements from history
+                if max_target_len-t == K:
+                    decoder_input = decoder_input.detach()
             # Calculate and accumulate loss
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
@@ -151,6 +158,7 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
+            decoder_input = decoder_input.detach()
             try:
                 decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]]) #RuntimeError: CUDA error: device-side assert triggered
                 decoder_input = decoder_input.to(device)
@@ -168,7 +176,7 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
 def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, decoder,
                encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
-               save_every, clip, corpus_name, val_iterations, K=5):
+               save_every, clip, corpus_name, val_iterations, detach_all=True):
     """
     This method defines the main training procedure
     :param model_name: model name
@@ -233,7 +241,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         #print("Max timesteps to unroll before performing backpropagation: %s" %K)
 
         train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len, encoder,
-                     decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K)
+                     decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K, detach_all=detach_all)
         train_print_loss += train_loss
 
         #### store results
@@ -311,7 +319,7 @@ class GreedySearchDecoder(nn.Module):
             all_tokens = torch.cat((all_tokens, decoder_input), dim=0)
             all_scores = torch.cat((all_scores, decoder_scores), dim=0)
             # Prepare current token to be next decoder input (add a dimension)
-            decoder_input = torch.unsqueeze(decoder_input, 0).detach()
+            decoder_input = torch.unsqueeze(decoder_input, 0)
         # Return collections of word tokens and scores
         return all_tokens, all_scores
 
@@ -402,7 +410,7 @@ def eval_test(test_batches, encoder, decoder):
 
 #### Plot results
 
-def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, live_show=False):
+def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, bs, lr, live_show=False):
     """
     Plots training results
     :param modelname:
@@ -419,7 +427,7 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
 
 
     directory = os.path.join(save_dir, "plots", modelname, corpus_name,
-                             '{}-{}_{}-{}'.format(n_layers, n_layers, embedding_size, hidden_size))
+                             '{}-{}_{}-{}_{}'.format(n_layers, n_layers, embedding_size, hidden_size, bs))
 
     if not os.path.isdir(directory):
         os.makedirs(directory)
@@ -428,7 +436,7 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
     plt.plot(val_history)
     plt.title('model train vs validation loss')
     plt.ylabel('loss')
-    plt.xlabel('iteration')
+    plt.xlabel('iteration - lr= {}'.format(lr))
     plt.legend(['train', 'validation'], loc='upper right')
     if live_show: plt.show()
     file = "train_loss.png"

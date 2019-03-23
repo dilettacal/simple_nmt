@@ -68,6 +68,12 @@ if __name__ == '__main__':
                         help="Get vocabulary from all dataset (true) or only from training data (false).\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
+    parser.add_argument('--det_all', type=str2bool, nargs='?',
+                        const=True, default="True",
+                        help="Set how to perform truncation in backpropagation. If 'true', every time 'detach()' is applied on the hidden states. "
+                             "If 'false', 'detach()' is only applied on K steps, where K by default is set up to max_len//2.\n"
+                             "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
+
     parser.add_argument('--dropout', type=float, default=0.2,
                         help='dropout applied to layers (0.0 = no dropout). Values range allowed: [0.0 - 1.0]')
 
@@ -186,6 +192,7 @@ if __name__ == '__main__':
     output_size = output_lang.num_words
     embedding_size = args.emb
     dropout = args.dropout
+    detach_all = args.det_all
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
@@ -223,7 +230,7 @@ if __name__ == '__main__':
     val_loss, directory, train_history, val_history = \
         trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                                      encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-                                     print_every, save_every, clip, FILENAME, val_iteration)
+                                     print_every, save_every, clip, FILENAME, val_iteration, detach_all=detach_all)
 
     end_time = datetime.now()
     duration = end_time-start_time
@@ -271,7 +278,7 @@ if __name__ == '__main__':
 
     print("Plotting results...")
     try:
-        plot_training_results(model_name, train_history, val_history, SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size,
+        plot_training_results(model_name, train_history, val_history, SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size, batch_size, learning_rate,
                           live_show=False)
         print("Plots stored in %s" %SAVE_DIR)
 
