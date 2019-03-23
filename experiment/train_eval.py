@@ -88,8 +88,9 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden
             )
-            for param in decoder.parameters():
-                param.requires_grad = True
+            if max_target_len - t == K:
+                for param in decoder.parameters():
+                    param.requires_grad = True
 
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
