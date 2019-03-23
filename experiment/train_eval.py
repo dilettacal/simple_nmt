@@ -8,8 +8,7 @@ import torch
 
 from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
-from utils.utils import maskNLLLoss
-
+from utils.utils import maskNLLLoss, plot_grad_flow
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
           encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5, detach_all=True):
@@ -93,6 +92,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
                 #Detach only the first K elements from history
                 if max_target_len-t == K:
                     decoder_input = decoder_input.detach()
+                    #backward??
             # Calculate and accumulate loss
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
@@ -101,6 +101,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
 
     # Perform backpropatation
     loss.backward()
+
     if clip:
         # Clip gradients: gradients are modified in place
         _ = torch.nn.utils.clip_grad_norm_(encoder.parameters(), max_norm=clip)
@@ -223,7 +224,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     train_history = []
     val_history = []
 
-
+    encoder_avg_grads, decoder_avg_grads = [], []
+    encoder_layers, decoder_layers = [], []
 
     for iteration in range(start_iteration, n_iteration):
         #Get the actual batch
@@ -244,6 +246,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                      decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K, detach_all=detach_all)
         train_print_loss += train_loss
 
+
         #### store results
         train_history.append(train_loss)
         encoder.eval()
@@ -255,6 +258,23 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
         val_history.append(val_loss)
 
+        #### Gradient statistics ##########
+
+        enc_params = encoder.named_parameters()
+        dec_params = decoder.named_parameters()
+
+        for n, p in enc_params:
+            if (p.requires_grad) and ("bias" not in n):
+                if iteration == 1:
+                    encoder_layers.append(n)
+                encoder_avg_grads.append(p.grad.abs().mean())
+
+        for n, p in dec_params:
+            if (p.requires_grad) and ("bias" not in n):
+                if iteration == 1:
+                    decoder_layers.append(n)
+                decoder_avg_grads.append(p.grad.abs().mean())
+
         # Print progress
         if iteration % print_every == 0:
             print_loss_avg = train_print_loss / print_every
@@ -264,11 +284,14 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             train_print_loss = 0
             val_print_loss = 0
 
+
+
         layers = encoder.n_layers
         # Save checkpoint
         if (iteration % save_every == 0):
+
             directory = os.path.join(save_dir, model_name, corpus_name,
-                                     '{}-{}_{}-{}'.format(encoder_n_layers, decoder_n_layers, encoder.emb_size, encoder.hidden_size))
+                                     '{}-{}_{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, encoder.emb_size, encoder.hidden_size, batch_size))
             if not os.path.exists(directory):
                 os.makedirs(directory)
             torch.save({
@@ -285,7 +308,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 'n_layers': layers # Layer numbers the same for both components
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
 
-    return print_val_loss_avg, directory, train_history, val_history
+
+    return print_val_loss_avg, directory, train_history, val_history, [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
 
 
 
@@ -426,8 +450,10 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
     import matplotlib.pyplot as plt
 
 
-    directory = os.path.join(save_dir, "plots", modelname, corpus_name,
+    directory = os.path.join(save_dir, modelname, corpus_name,
                              '{}-{}_{}-{}_{}'.format(n_layers, n_layers, embedding_size, hidden_size, bs))
+
+    directory = os.path.join(directory, "plots")
 
     if not os.path.isdir(directory):
         os.makedirs(directory)

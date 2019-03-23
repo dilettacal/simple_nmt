@@ -1,3 +1,4 @@
+import os
 import random
 
 import numpy
@@ -112,30 +113,40 @@ def split_data(data, test_ratio=0.2, seed=40):
     return train_set, val_set, test_set
 
 
-def plot_grad_flow(encoder_named_parameters, decoder_named_parameters):
-    encoder_avg_grads = []
-    encoder_layers = []
+def plot_grad_flow(save_dir, modelname, corpus_name, n_layers, emb_size, hid_size, bs, enc_statistics, dec_statistics):
+
+    directory = os.path.join(save_dir, modelname, corpus_name,
+                             '{}-{}_{}-{}_{}'.format(n_layers, n_layers, emb_size, hid_size, bs))
+    store_grad = os.path.join(directory, "gradients")
+
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
+
+    encoder_avg_grads, encoder_layers = enc_statistics
+    decoder_avg_grads , decoder_layers = dec_statistics
 
     ### Plotting both figuers side by side
 
-    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-    ax1.plot(x, y)
-    ax1.set_title('Sharing Y axis')
-    ax2.scatter(x, y)
-
-    for n, p in encoder_named_parameters:
-        if(p.requires_grad) and ("bias" not in n):
-            encoder_layers.append(n)
-            encoder_avg_grads.append(p.grad.abs().mean())
-
-    plt.plot(encoder_avg_grads, alpha=0.3, color="b")
+    plt.subplot(1, 2, 1)
+    plt.plot(encoder_avg_grads, alpha=0.3, color='b')
     plt.hlines(0, 0, len(encoder_avg_grads)+1, linewidth=1, color="k" )
     plt.xticks(range(0,len(encoder_avg_grads), 1), encoder_layers, rotation="vertical")
     plt.xlim(xmin=0, xmax=len(encoder_avg_grads))
     plt.xlabel("Layers")
     plt.ylabel("average gradient")
-    plt.title("Gradient flow")
+    plt.title("Encoder - Gradient flow")
     plt.grid(True)
-    plt.savefig("./gradients/")
+
+    plt.subplot(1, 2, 2)
+    plt.plot(decoder_avg_grads, alpha=0.3, color='r')
+    plt.hlines(0, 0, len(decoder_layers) + 1, linewidth=1, color="k")
+    plt.xticks(range(0, len(decoder_avg_grads), 1), decoder_layers, rotation="vertical")
+    plt.xlim(xmin=0, xmax=len(decoder_avg_grads))
+    plt.xlabel("Layers")
+    plt.ylabel("average gradient")
+    plt.title("Decoder - Gradient flow")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(store_grad+"gradient_flow.png")
     plt.close()
 

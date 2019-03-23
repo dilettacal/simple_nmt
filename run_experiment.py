@@ -13,7 +13,7 @@ from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data, sav
 from utils.tokenize import build_vocab, batch2TrainData
 
 from global_settings import DATA_DIR
-from utils.utils import split_data, filter_pairs, max_length
+from utils.utils import split_data, filter_pairs, max_length, plot_grad_flow
 
 
 def str2bool(v):
@@ -24,6 +24,17 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+
+def str2float(s):
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+
 
 
 if __name__ == '__main__':
@@ -43,11 +54,11 @@ if __name__ == '__main__':
     parser.add_argument('--nlayers', type=int, default=1,
                         help='number of layers')
 
-    parser.add_argument('--lr', type=float, default=0.00001,
+    parser.add_argument('--lr', type=float, default=0.003,
                         help='initial learning rate')
 
-    parser.add_argument('--clip', type=float, default=50,
-                        help='gradient clipping')
+    parser.add_argument('--clip', type=str2float, default="0.25",
+                        help='gradient clipping. Provided as a float number or an empty string \" \", if no clipping should happen.')
 
     parser.add_argument('--iterations', type=int, default=15000,
                         help='number of iterations')
@@ -68,10 +79,9 @@ if __name__ == '__main__':
                         help="Get vocabulary from all dataset (true) or only from training data (false).\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
-    parser.add_argument('--det_all', type=str2bool, nargs='?',
-                        const=True, default="True",
+    parser.add_argument('--tbptt', type=str2bool, default="True",
                         help="Set how to perform truncation in backpropagation. If 'true', every time 'detach()' is applied on the hidden states. "
-                             "If 'false', 'detach()' is only applied on K steps, where K by default is set up to max_len//2.\n"
+                             "If 'false', 'detach()' is not applied.\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
     parser.add_argument('--dropout', type=float, default=0.2,
@@ -111,7 +121,6 @@ if __name__ == '__main__':
     trimming = False
 
     voc_all = args.voc_all
-    print(voc_all)
 
     ### Setup preprocessing file ####
     cleaned_file =  "%s-%s_cleaned" % (src_lang, trg_lang) + "_full" +".pkl"
@@ -192,7 +201,7 @@ if __name__ == '__main__':
     output_size = output_lang.num_words
     embedding_size = args.emb
     dropout = args.dropout
-    detach_all = args.det_all
+    tbptt = args.tbptt
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
@@ -215,9 +224,6 @@ if __name__ == '__main__':
 
     save_every = 500
 
-    print("Training iterations: ", n_iteration)
-    print("Iteration on validation set: ", val_iteration)
-
     # Initialize optimizers
     print('Building optimizers ...')
     encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
@@ -227,10 +233,10 @@ if __name__ == '__main__':
     # Run training iterations
     print("Starting Training!")
     start_time = datetime.now()
-    val_loss, directory, train_history, val_history = \
+    val_loss, directory, train_history, val_history, enc_statistics, dec_statistics = \
         trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
-                                     encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-                                     print_every, save_every, clip, FILENAME, val_iteration, detach_all=detach_all)
+                   encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
+                   print_every, save_every, clip, FILENAME, val_iteration, detach_all=tbptt)
 
     end_time = datetime.now()
     duration = end_time-start_time
@@ -280,7 +286,13 @@ if __name__ == '__main__':
     try:
         plot_training_results(model_name, train_history, val_history, SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size, batch_size, learning_rate,
                           live_show=False)
-        print("Plots stored in %s" %SAVE_DIR)
+
+        # plotting gradient flow for both encoder and decoder
+        plot_grad_flow(SAVE_DIR, model_name, FILENAME, decoder_n_layers, embedding_size,
+                       hidden_size,
+                       batch_size, enc_statistics, dec_statistics)
+
+        print("Plots stored!")
 
     except IOError or RuntimeError:
         pass
