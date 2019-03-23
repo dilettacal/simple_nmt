@@ -29,8 +29,11 @@ def read_lines(root, filename):
     :return: Array of lines (parallel corpus)
     """
     path = os.path.join(root, filename)
-    with io.open(path, encoding="utf-8", closefd=True) as f:
-        lines = f.readlines()
+    try:
+        with io.open(path, encoding="utf-8", closefd=True) as f:
+            lines = f.readlines()
+    except IOError or FileNotFoundError or RuntimeError:
+        print("Data file not found. Please run the script download.sh or download file manually from https://www.manythings.org/anki/, then extract files and copy them to ./data/")
     lines = [line.replace("\n", "").lower().split("\t") for line in lines]
     return lines
 

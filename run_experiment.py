@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 from pickle import load
@@ -18,23 +19,85 @@ from utils.utils import split_data, filter_pairs, max_length
 
 if __name__ == '__main__':
 
+    ##### ArgumentParser ###########
+
+    parser = argparse.ArgumentParser(description='PyTorch Vanilla LSTM Machine Translator')
+    parser.add_argument('--data', type=str, default='./data/',
+                        help='location of the data corpus')
+
+    parser.add_argument('--emb', type=int, default=256,
+                        help='size of word embeddings')
+
+    parser.add_argument('--hid', type=int, default=256,
+                        help='number of hidden units per layer')
+
+    parser.add_argument('--nlayers', type=int, default=1,
+                        help='number of layers')
+
+    parser.add_argument('--lr', type=float, default=0.00001,
+                        help='initial learning rate')
+
+    parser.add_argument('--clip', type=float, default=50,
+                        help='gradient clipping')
+
+    parser.add_argument('--iterations', type=int, default=15000,
+                        help='number of iterations')
+
+    parser.add_argument('--batch_size', type=int, default=24, metavar='N',
+                        help='batch size')
+
+    parser.add_argument('--teacher', type=float, default=0.4, help="Teacher forcing ration during training phase")
+
+    parser.add_argument('--limit', type=int, default=10000, metavar='N', help='Reduce dataset to N samples')
+
+    parser.add_argument('--voc_all', dest='voc_all', action='store_true', help='Get vocabulary from all dataset (true) or only from training data (false)')
+    parser.set_defaults(voc_all=True)
+
+    parser.add_argument('--dropout', type=float, default=0.2,
+                        help='dropout applied to layers (0 = no dropout)')
+
+    parser.add_argument('--seed', type=int, default=1111,
+                        help='random seed')
+
+    parser.add_argument('--cuda', dest="cuda",action='store_true',
+                        help='use CUDA')
+    parser.set_defaults(cuda=True)
+
+    parser.add_argument('--log', type=int, default=100, metavar='N',
+                        help='report interval')
+
+    args = parser.parse_args()
+
+    print("Parsed arguments:")
+    print(args)
+
+    # Set the random seed manually for reproducibility.
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        if not args.cuda:
+            print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+
+    device = torch.device("cuda" if args.cuda else "cpu")
+
+    ###### Starting the program #####
+
     experiment_execution_time = datetime.now()
 
     start_root = "."
     src_lang = "eng"
     trg_lang = "deu"
     exp_contraction = True
-    src_reversed = False
+
     limit = None
     trimming = False
-    #len_filter = [1, 10]
-    len_filter = None
 
-    voc_all = True
+    voc_all = args.voc_all
+    print(voc_all)
 
-    cleaned_file = "%s-%s_cleaned" % (src_lang, trg_lang) + "_rude" if not exp_contraction else "%s-%s_cleaned" % (
-        src_lang, trg_lang) + "_full"
-    cleaned_file = cleaned_file + "reversed.pkl" if src_reversed else cleaned_file + ".pkl"
+    ### Setup preprocessing file ####
+    cleaned_file =  "%s-%s_cleaned" % (src_lang, trg_lang) + "_full" +".pkl"
+
+    ### Check if data has already been preprocessed, if not, preprocess it ####
 
     if os.path.isfile(os.path.join(PREPRO_DIR, cleaned_file)):
         print("File already preprocessed! Loading file....")
@@ -44,6 +107,7 @@ if __name__ == '__main__':
         pairs = read_lines(os.path.join(start_root, DATA_DIR), FILENAME)
         pairs, path = preprocess_pipeline(pairs, cleaned_file, exp_contraction) #data/prepro/eng-deu_cleaned_full.pkl
 
+    ### Get sample ###
     print("Sample from data:")
     print(random.choice(pairs))
 
@@ -52,14 +116,12 @@ if __name__ == '__main__':
         src_sents = [item[0] for item in pairs]
         trg_sents = [item[1] for item in pairs]
 
-    limit = 50000
+    limit = args.limit
 
     if limit:
         pairs = pairs[:limit]
 
-    pairs = filter_pairs(pairs, len_tuple=len_filter)
-
-    train_set, val_set, test_set = split_data(pairs, seed=40)
+    train_set, val_set, test_set = split_data(pairs, seed=args.seed)
 
     print("Data in train set:", len(train_set))
     print("Data in val set:", len(val_set))
@@ -70,7 +132,7 @@ if __name__ == '__main__':
     train_data = train_set+val_set
 
 
-    if voc_all is None:
+    if not voc_all:
         # Build vocabularies based on train set
         src_sents = [item[0] for item in train_data]
         trg_sents = [item[1] for item in train_data]
@@ -103,13 +165,13 @@ if __name__ == '__main__':
     # Configure models
     model_name = ''
     model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model_full'
-    hidden_size = 512
-    encoder_n_layers = 1
-    decoder_n_layers = 1
-    batch_size = 24
+    hidden_size = args.hid
+    encoder_n_layers = args.nlayers
+    decoder_n_layers = args.nlayers
+    batch_size = args.batch_size
     input_size = input_lang.num_words
     output_size = output_lang.num_words
-    embedding_size = 256
+    embedding_size = args.emb
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
@@ -122,13 +184,13 @@ if __name__ == '__main__':
     print(encoder)
     print(decoder)
 
-    clip = None
-    teacher_forcing_ratio = 0.4
-    learning_rate = 0.0001 #0.0001
+    clip = args.clip
+    teacher_forcing_ratio = args.teacher
+    learning_rate = args.lr
     decoder_learning_ratio = 1.0 #5.0
-    n_iteration = 20000
+    n_iteration = args.iterations
     val_iteration = n_iteration
-    print_every = 100
+    print_every = args.log
     save_every = 500
 
     print("Training iterations: ", n_iteration)
