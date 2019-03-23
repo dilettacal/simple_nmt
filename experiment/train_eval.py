@@ -12,7 +12,7 @@ from utils.utils import maskNLLLoss
 
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
-          encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5):
+          encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5):
     """
     Performs a training step on a batch during training process
     :param input_variable: batched tensor input
@@ -46,6 +46,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     print_losses = []
     n_totals = 0
 
+    K = max_target_len//2
+
     # Forward pass through encoder
     encoder_outputs, encoder_hidden = encoder(input_variable, lengths)
 
@@ -63,11 +65,17 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     use_teacher_forcing = True if rand < teacher_forcing_ratio else False
 
     # Forward batch of sequences through decoder one time step at a time
+    for param in decoder.parameters():
+        param.requires_grad = False
+
     if use_teacher_forcing:
         for t in range(max_target_len):
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden
             )
+            if max_target_len - t == K:
+                for param in decoder.parameters():
+                    param.requires_grad = True
             # Teacher forcing: next input is current target
             decoder_input = target_variable[t].view(1, -1)
             # Calculate and accumulate loss
@@ -80,6 +88,9 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden
             )
+            for param in decoder.parameters():
+                param.requires_grad = True
+
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
             decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
@@ -167,7 +178,7 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
 def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, decoder,
                encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
-               save_every, clip, corpus_name, val_iterations):
+               save_every, clip, corpus_name, val_iterations, K=5):
     """
     This method defines the main training procedure
     :param model_name: model name
@@ -229,12 +240,11 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         decoder.train()
 
         train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len, encoder,
-                     decoder, encoder_optimizer, decoder_optimizer, batch_size, clip)
+                     decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K)
         train_print_loss += train_loss
 
         #### store results
         train_history.append(train_loss)
-
         encoder.eval()
         decoder.eval()
 
