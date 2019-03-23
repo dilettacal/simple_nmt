@@ -7,7 +7,7 @@ from global_settings import device, MAX_LENGTH
 import torch
 
 from utils.prepro import preprocess_sentence
-from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD
+from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
 from utils.utils import maskNLLLoss
 
 
@@ -39,14 +39,14 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     lengths = lengths.to(device)
     target_variable = target_variable.to(device)
     mask = mask.to(device)
-    trg_lengths = trg_lengths.to(device) #RuntimeError: cuDNN error: CUDNN_STATUS_EXECUTION_FAILED
+    #trg_lengths = trg_lengths.to(device) #RuntimeError: cuDNN error: CUDNN_STATUS_EXECUTION_FAILED
 
     # Initialize variables
     loss = 0
     print_losses = []
     n_totals = 0
 
-    K = max_target_len//2
+   # K = max_target_len//2
 
     # Forward pass through encoder
     encoder_outputs, encoder_hidden = encoder(input_variable, lengths)
@@ -65,17 +65,11 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     use_teacher_forcing = True if rand < teacher_forcing_ratio else False
 
     # Forward batch of sequences through decoder one time step at a time
-    for param in decoder.parameters():
-        param.requires_grad = False
-
     if use_teacher_forcing:
         for t in range(max_target_len):
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden
             )
-            if max_target_len - t == K:
-                for param in decoder.parameters():
-                    param.requires_grad = True
             # Teacher forcing: next input is current target
             decoder_input = target_variable[t].view(1, -1)
             # Calculate and accumulate loss
@@ -88,19 +82,17 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden
             )
-            if max_target_len - t == K:
-                for param in decoder.parameters():
-                    param.requires_grad = True
-
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
-            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
+            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]]).detach()
             decoder_input = decoder_input.to(device)
             # Calculate and accumulate loss
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
+            if decoder_input.item() == EOS_token:
+                break
 
 
     # Perform backpropatation
@@ -239,6 +231,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
         encoder.train()
         decoder.train()
+
+        K = train_max_len.item() // 2
+        #print("Max timesteps to unroll before performing backpropagation: %s" %K)
 
         train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len, encoder,
                      decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K)

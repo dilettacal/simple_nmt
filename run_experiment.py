@@ -220,7 +220,8 @@ if __name__ == '__main__':
     # Run training iterations
     print("Starting Training!")
     start_time = datetime.now()
-    val_loss, directory, train_history, val_history = trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
+    val_loss, directory, train_history, val_history = \
+        trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                                      encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
                                      print_every, save_every, clip, FILENAME, val_iteration)
 
