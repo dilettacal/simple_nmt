@@ -44,57 +44,71 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Vanilla LSTM Machine Translator')
     #parser.add_argument('--data', type=str, default='./data/',
                       #  help='location of the data corpus. Default in ./data/')
-
+    ### Embedding size ####
     parser.add_argument('--emb', type=int, default=256,
                         help='size of word embeddings')
-
+    ### Hidden size ####
     parser.add_argument('--hid', type=int, default=256,
                         help='number of hidden units per layer')
 
+    ### Number of layers ####
     parser.add_argument('--nlayers', type=int, default=1,
                         help='number of layers')
 
+    ### Learning rate ###
     parser.add_argument('--lr', type=float, default=0.003,
                         help='initial learning rate')
 
+    ### Gradient clipping ###
     parser.add_argument('--clip', type=str2float, default="0.25",
                         help='gradient clipping. Provided as a float number or an empty string \" \", if no clipping should happen.')
 
+    ### Number of iterations ###
     parser.add_argument('--iterations', type=int, default=15000,
                         help='number of iterations')
 
+    ### Batch size ###
     parser.add_argument('--batch_size', type=int, default=24, help='batch size')
 
+    ### Teacher forcing ratio ###
     parser.add_argument('--teacher', type=float, default=0.4, help="Teacher forcing ration during training phase")
 
+    ### How many data ###
     parser.add_argument('--limit', type=int, default=10000,help='Reduce dataset to N samples')
 
-    #parser.add_argument('--voc_all', dest='voc_all', action='store_true', help=' data (false)')
-   # parser.set_defaults(voc_all=True)
-
+    ### Decoder learning rate ###
     parser.add_argument('--dec_lr', type=int, default=1, help="Decoder learning rate decay. This must be provided as integer, as it is multiplied by the learning rate (lr)")
 
+    ### Compute vocabulary on all dataset or only training samples ###
     parser.add_argument('--voc_all', type=str2bool, nargs='?',
                         const=True, default="True",
                         help="Get vocabulary from all dataset (true) or only from training data (false).\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
+    ### Truncated Backprop through time ###
     parser.add_argument('--tbptt', type=str2bool, default="True",
                         help="Set how to perform truncation in backpropagation. If 'true', every time 'detach()' is applied on the hidden states. "
                              "If 'false', 'detach()' is not applied.\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
-
+    ### Dropout ###
     parser.add_argument('--dropout', type=float, default=0.2,
                         help='dropout applied to layers (0.0 = no dropout). Values range allowed: [0.0 - 1.0]')
 
+    ### Seed ###
     parser.add_argument('--seed', type=int, default=1111,
                         help='random seed')
 
+    ### Run program on cuda ###
     parser.add_argument('--cuda', type=str2bool, default="true", help="use CUDA.\n"
                                                                       "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
+    ### Logging interval ###
     parser.add_argument('--log', type=int, default=100, help='report interval')
 
+
+    #### Start #####
+
+    # Read arguments
     args = parser.parse_args()
 
     print("Parsed arguments:")
@@ -236,7 +250,7 @@ if __name__ == '__main__':
     val_loss, directory, train_history, val_history, enc_statistics, dec_statistics = \
         trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                    encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
-                   print_every, save_every, clip, FILENAME, val_iteration, detach_all=tbptt)
+                   print_every, save_every, clip, FILENAME, val_iteration, tbptt=tbptt)
 
     end_time = datetime.now()
     duration = end_time-start_time

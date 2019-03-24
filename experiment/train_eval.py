@@ -10,8 +10,13 @@ from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
 from utils.utils import maskNLLLoss, plot_grad_flow
 
+def detach_states(states):
+	if states is None:
+		return states
+	return [state.detach() for state in states]
+
 def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
-          encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5, detach_all=True):
+          encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5, tbptt=True):
     """
     Performs a training step on a batch during training process
     :param input_variable: batched tensor input
@@ -48,7 +53,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
    # K = max_target_len//2
 
     # Forward pass through encoder
-    encoder_outputs, encoder_hidden = encoder(input_variable, lengths)
+    encoder_outputs, encoder_states = encoder(input_variable, lengths)
 
     # Create initial decoder input (start with SOS tokens for each sentence)
     decoder_input = torch.LongTensor([[SOS_token for _ in range(batch_size)]])
@@ -56,7 +61,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
 
     # Set initial decoder hidden state to the encoder's final hidden state
     #decoder_hidden = encoder_hidden[:decoder.n_layers]
-    decoder_hidden = encoder_hidden
+    decoder_states = encoder_states
+
 
     # Determine if we are using teacher forcing this iteration
     rand = random.random()
@@ -66,8 +72,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
     # Forward batch of sequences through decoder one time step at a time
     if use_teacher_forcing:
         for t in range(max_target_len):
-            decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden
+            decoder_output, decoder_states = decoder(
+                decoder_input, decoder_states
             )
             # Teacher forcing: next input is current target
             decoder_input = target_variable[t].view(1, -1)
@@ -78,21 +84,19 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             n_totals += nTotal
     else:
         for t in range(max_target_len):
-            decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden
+            ### Truncate backpropagation through time ###
+            if tbptt:
+                decoder_input = decoder_input.detach()
+                decoder_states = detach_states(decoder_states)
+
+            decoder_output, decoder_states = decoder(
+                decoder_input, decoder_states
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
             decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
             decoder_input = decoder_input.to(device)
-            if detach_all:
-                #detach everything by now
-                decoder_input = decoder_input.detach()
-            else:
-                #Detach only the first K elements from history
-                if max_target_len-t == K:
-                    decoder_input = decoder_input.detach()
-                    #backward??
+
             # Calculate and accumulate loss
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
@@ -142,7 +146,7 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
     with torch.no_grad():
 
         # Forward pass through encoder
-        encoder_outputs, encoder_hidden = encoder(input_variable, lengths)
+        encoder_outputs, encoder_states = encoder(input_variable, lengths)
 
         # Create initial decoder input (start with SOS tokens for each sentence)
         decoder_input = torch.LongTensor([[SOS_token for _ in range(batch_size)]])
@@ -150,12 +154,12 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
 
         # Set initial decoder hidden state to the encoder's final hidden state
         #decoder_hidden = encoder_hidden[:decoder.n_layers]
-        decoder_hidden = encoder_hidden
+        decoder_states = encoder_states
 
         # Forward batch of sequences through decoder one time step at a time
         for t in range(max_target_len):
-            decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden
+            decoder_output, decoder_states = decoder(
+                decoder_input, decoder_states
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
@@ -177,7 +181,7 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
 def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, decoder,
                encoder_optimizer, decoder_optimizer,
                encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
-               save_every, clip, corpus_name, val_iterations, detach_all=True):
+               save_every, clip, corpus_name, val_iterations, tbptt=True):
     """
     This method defines the main training procedure
     :param model_name: model name
@@ -242,8 +246,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         K = train_max_len.item() // 2
         #print("Max timesteps to unroll before performing backpropagation: %s" %K)
 
-        train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len, encoder,
-                     decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K, detach_all=detach_all)
+        train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len,
+                           encoder, decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K, tbptt=tbptt)
         train_print_loss += train_loss
 
 
@@ -267,13 +271,20 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             if (p.requires_grad) and ("bias" not in n):
                 if iteration == 1:
                     encoder_layers.append(n)
-                encoder_avg_grads.append(p.grad.abs().mean())
+                try:
+                    encoder_avg_grads.append(p.grad.abs().mean())
+                except AttributeError:
+                    pass
+
 
         for n, p in dec_params:
             if (p.requires_grad) and ("bias" not in n):
                 if iteration == 1:
                     decoder_layers.append(n)
-                decoder_avg_grads.append(p.grad.abs().mean())
+                try:
+                    decoder_avg_grads.append(p.grad.abs().mean())
+                except AttributeError:
+                    pass
 
         # Print progress
         if iteration % print_every == 0:
@@ -287,6 +298,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
 
         layers = encoder.n_layers
+        hidden_size = encoder.hidden_size
         # Save checkpoint
         if (iteration % save_every == 0):
 
@@ -305,7 +317,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 'tar_dict': tar_voc.__dict__,
                 'src_embedding': encoder.embedding.state_dict(),
                 'trg_embedding': decoder.embedding.state_dict(),
-                'n_layers': layers # Layer numbers the same for both components
+                'n_layers': layers, # Layer numbers the same for both components
+                'hidden_size': hidden_size
+
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
 
 
