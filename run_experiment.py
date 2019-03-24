@@ -60,7 +60,7 @@ if __name__ == '__main__':
                         help='initial learning rate')
 
     ### Gradient clipping ###
-    parser.add_argument('--clip', type=str2float, default="0.25",
+    parser.add_argument('--clip', type=str2float, default="50",
                         help='gradient clipping. Provided as a float number or an empty string \" \", if no clipping should happen.')
 
     ### Number of iterations ###
@@ -71,10 +71,10 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=24, help='batch size')
 
     ### Teacher forcing ratio ###
-    parser.add_argument('--teacher', type=float, default=0.4, help="Teacher forcing ration during training phase")
+    parser.add_argument('--teacher', type=float, default=0.2, help="Teacher forcing ration during training phase")
 
     ### How many data ###
-    parser.add_argument('--limit', type=int, default=10000,help='Reduce dataset to N samples')
+    parser.add_argument('--limit', type=int, help='Reduce dataset to N samples')
 
     ### Decoder learning rate ###
     parser.add_argument('--dec_lr', type=int, default=1, help="Decoder learning rate decay. This must be provided as integer, as it is multiplied by the learning rate (lr)")
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     trg_lang = "deu"
     exp_contraction = True
 
-    limit = None
+    limit = args.limit
     trimming = False
 
     voc_all = args.voc_all
@@ -167,8 +167,6 @@ if __name__ == '__main__':
         # build vocabularies based on all data set (test set included)
         src_sents = [item[0] for item in pairs]
         trg_sents = [item[1] for item in pairs]
-
-    limit = args.limit
 
     print("Limit set: %s" %str(limit))
 
