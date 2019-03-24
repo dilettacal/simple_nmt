@@ -13,22 +13,39 @@ from global_settings import EXPERIMENT_DIR, LOG_FILE, device
 from model.model import EncoderLSTM, DecoderLSTM
 from utils.tokenize import Voc
 
-def translate(start_root):
-   # start_root = "."
 
-    print("Reading experiment information...")
-    with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), mode="r", encoding="utf-8") as f:
-        lines = f.readlines()
+def translate(start_root):
+    # start_root = "."
+
+    print("Reading experiment information from: ")
+    try:
+        with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), mode="r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except IOError or FileNotFoundError or FileExistsError or RuntimeError:
+        print("Logging file does not exist!")
+        exit(-1)
 
     experiment_path = [line.strip() for line in lines if "experiment/" in line]
-    print(experiment_path)
-    #  print(experiment_path[0])
-    hidden_size = "".join(experiment_path[0].split("_")).split("-")
-    hidden_size = int(hidden_size[-1])
-    # print(hidden_size)
-    checkpoints = [f for f in os.listdir(os.path.join(start_root, experiment_path[0])) if
-                   os.path.isfile(os.path.join(start_root, experiment_path[0], f))]
+    print(experiment_path[0])
+
+    # e.g. ['1-1', '512-256', '64'], num_layers, emb_size, hidden_size, batchsize --> [:-1] batch size for translating not relevant
+    #model_infos = experiment_path[0].split("/")[-1].split("_")[:-1]  #e.g. ['1-1', '512-256']
+
+   # num_layers, sizes = model_infos #e.g. 1-1, 512-256
+    #n_layers = num_layers[0]
+    #emb_size = sizes[0]
+    #hidden_size = sizes[1]
+    checkpoints = []
+    try:
+        checkpoints = [f for f in os.listdir(os.path.join(start_root, experiment_path[0])) if
+                   os.path.isfile(os.path.join(start_root, experiment_path[0], f)) and os.path.join(start_root, experiment_path[0], f).endswith("tar")]
+    except FileNotFoundError or IndexError or IOError or RuntimeError as e:
+        print("An error as occurred: %s" %e)
+        print("Please run at least an experiment!")
+        exit(-1)
+    print(checkpoints)
     last_checkpoint = checkpoints[-1]
+    print(os.path.join(start_root, experiment_path[0], last_checkpoint))
 
     # Load model
     checkpoint = torch.load(os.path.join(start_root, experiment_path[0], last_checkpoint))
@@ -43,6 +60,7 @@ def translate(start_root):
     enc_optimizer = checkpoint['en_opt']
     dec_optimzier = checkpoint['de_opt']
     layers = checkpoint['n_layers']
+    hidden_size = checkpoint['hidden_size']
 
     src_voc = Voc("eng")
     trg_voc = Voc("deu")
@@ -80,7 +98,5 @@ def translate(start_root):
 
     evaluateInput(encoder, decoder, searcher, src_voc, trg_voc)
 
-
 if __name__ == '__main__':
-
     translate(".")
