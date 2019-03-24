@@ -105,14 +105,17 @@ if __name__ == '__main__':
     ### Logging interval ###
     parser.add_argument('--log', type=int, default=100, help='report interval')
 
+    parser.add_argument('--max_len', type=int, default=10, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
+
 
     #### Start #####
 
     # Read arguments
     args = parser.parse_args()
 
-    print("Parsed arguments:")
-    print(args)
+    print("Expreiment settings:")
+    for arg in vars(args):
+        print(arg, getattr(args, arg))
 
     # Set the random seed manually for reproducibility.
     torch.manual_seed(args.seed)
@@ -137,7 +140,12 @@ if __name__ == '__main__':
     voc_all = args.voc_all
 
     ### Setup preprocessing file ####
-    cleaned_file =  "%s-%s_cleaned" % (src_lang, trg_lang) + "_full" +".pkl"
+
+    max_sent_len = args.max_len
+    if max_sent_len > 0:
+        cleaned_file =  "%s-%s_cleaned" % (src_lang, trg_lang) + "_{}".format(max_sent_len) +".pkl"
+    else:
+        cleaned_file = "%s-%s_cleaned" % (src_lang, trg_lang) + "_full" + ".pkl"
 
     ### Check if data has already been preprocessed, if not, preprocess it ####
 
@@ -147,11 +155,13 @@ if __name__ == '__main__':
     else:
         print("No preprocessed file found. Starting data preprocessing...")
         pairs = read_lines(os.path.join(start_root, DATA_DIR), FILENAME)
-        pairs, path = preprocess_pipeline(pairs, cleaned_file, exp_contraction) #data/prepro/eng-deu_cleaned_full.pkl
+        pairs, path = preprocess_pipeline(pairs, cleaned_file, exp_contraction, max_len = max_sent_len) #data/prepro/eng-deu_cleaned_full.pkl
 
     ### Get sample ###
     print("Sample from data:")
     print(random.choice(pairs))
+
+    src_sents, trg_sents = [], []
 
     if voc_all:
         # build vocabularies based on all data set (test set included)
@@ -159,6 +169,8 @@ if __name__ == '__main__':
         trg_sents = [item[1] for item in pairs]
 
     limit = args.limit
+
+    print("Limit set: %s" %str(limit))
 
     if limit:
         pairs = pairs[:limit]
@@ -178,6 +190,9 @@ if __name__ == '__main__':
         # Build vocabularies based on train set
         src_sents = [item[0] for item in train_data]
         trg_sents = [item[1] for item in train_data]
+
+   # print("Source:", src_sents)
+   # print("Target:", trg_sents)
 
     max_src_l = max_length(src_sents)
     max_trg_l = max_length(trg_sents)

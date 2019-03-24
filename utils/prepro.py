@@ -5,7 +5,7 @@ import unicodedata
 import re
 from pickle import dump, load
 
-from utils.mappings import UMLAUT_MAP, ENG_CONTRACTIONS_MAP
+from utils.mappings import ENG_CONTRACTIONS_MAP, UMLAUT_MAP
 from utils.tokenize import SOS_token, EOS_token
 from global_settings import PREPRO_DIR
 
@@ -21,6 +21,7 @@ Adaptation for this task:
 
 """
 
+
 def read_lines(root, filename):
     """
     Read line given the file root and the file name
@@ -33,9 +34,11 @@ def read_lines(root, filename):
         with io.open(path, encoding="utf-8", closefd=True) as f:
             lines = f.readlines()
     except IOError or FileNotFoundError or RuntimeError:
-        print("Data file not found. Please run the script download.sh or download file manually from https://www.manythings.org/anki/, then extract files and copy them to ./data/")
+        print(
+            "Data file not found. Please run the script download.sh or download file manually from https://www.manythings.org/anki/, then extract files and copy them to ./data/")
     lines = [line.replace("\n", "").lower().split("\t") for line in lines]
     return lines
+
 
 def reverse_language_pair(pairs):
     """
@@ -63,8 +66,18 @@ def unicode_to_ascii(s):
     )
 
 
+def filter_pair(p, max_len):
+    """
+    Filter a sentence pair on length basis
+    :param p:
+    :param max_len:
+    :return:
+    """
+    return len(p[0].split(" ")) <= max_len and len(p[1].split(" ")) <= max_len
+
+
 def preprocess_sentence(sentence, expand_contractions=None, append_token=False):
-    #print("Preprocessing sentence...")
+    # print("Preprocessing sentence...")
     """
     Rapid preprocessing
     https://machinelearningmastery.com/prepare-french-english-dataset-machine-translation/
@@ -84,9 +97,9 @@ def preprocess_sentence(sentence, expand_contractions=None, append_token=False):
         mapping = expand_contractions
         sentence = expand_contraction(sentence, mapping)
 
-    #Filtering function only applies on a sentence level
-    #if filter_func:
-        #sentence = filter_func(sentence)
+    # Filtering function only applies on a sentence level
+    # if filter_func:
+    # sentence = filter_func(sentence)
 
     # prepare regex for char filtering
     re_print = re.compile('[^%s]' % re.escape(string.printable))
@@ -108,12 +121,11 @@ def preprocess_sentence(sentence, expand_contractions=None, append_token=False):
 
     line = ' '.join([word for word in line])
 
-   # print(line)
+    # print(line)
 
     if append_token:
         line = [SOS_token] + line + [EOS_token]
     return line
-
 
 
 def expand_contraction(sentence, mapping):
@@ -180,6 +192,7 @@ def save_clean_data(path, pairs, filename):
     print('File %s saved in %s' % (filename, path_to_dir))
     return path_to_dir
 
+
 def load_cleaned_data(path, filename):
     """
     Loads pickle of cleaned files
@@ -188,12 +201,13 @@ def load_cleaned_data(path, filename):
     :return:
     """
     path_to_file = os.path.join(path, filename)
-    if(os.path.isfile(path_to_file)):
+    if (os.path.isfile(path_to_file)):
         return load(open(path_to_file, 'rb'))
-    else: raise RuntimeError("File not found, please preprocess and save sentences!")
+    else:
+        raise RuntimeError("File not found, please preprocess and save sentences!")
 
 
-def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None, reverse_pairs=False):
+def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None, reverse_pairs=False, max_len=10):
     """
     Performs preprocessing in a single pipeline
     :param cleaned_file_to_store:
@@ -202,11 +216,15 @@ def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None,
     :return:
     """
 
-   # pairs = read_lines(DATA_DIR, FILENAME)
-  #  print(len(pairs))
-    #print(pairs[10])
+    # pairs = read_lines(DATA_DIR, FILENAME)
+    #  print(len(pairs))
+    # print(pairs[10])
+
+    start_len = len(pairs)
+
     src_sents = [item[0] for item in pairs]
     trg_sents = [item[1] for item in pairs]
+
     if expand_contraction:
         src_mapping = ENG_CONTRACTIONS_MAP
         trg_mapping = UMLAUT_MAP
@@ -216,8 +234,8 @@ def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None,
 
     cleaned_pairs = []
     for i, (src_sent, trg_sent) in enumerate(pairs):
-        cleaned_src_sent = preprocess_sentence(src_sent, src_mapping)
-        cleaned_trg_sent = preprocess_sentence(trg_sent, trg_mapping)
+        cleaned_src_sent = preprocess_sentence(src_sent, src_mapping, append_token=False)
+        cleaned_trg_sent = preprocess_sentence(trg_sent, trg_mapping, append_token=False)
         cleaned_list = [cleaned_src_sent, cleaned_trg_sent]
 
         cleaned_pairs.append(cleaned_list)
@@ -225,6 +243,13 @@ def preprocess_pipeline(pairs, cleaned_file_to_store=None, exp_contraction=None,
     if reverse_pairs:
         cleaned_pairs = reverse_language_pair(cleaned_pairs)
 
+        ### Filtering on max len
+    if max_len > 0:
+        print("Applied filter based on sequence length...")
+        cleaned_pairs = [p for p in cleaned_pairs if filter_pair(p, max_len)]
+        print("Dataset reduced from  {} samples to {} samples".format(start_len, len(cleaned_pairs)))
+
+    store_path = ""
     if cleaned_file_to_store:
         store_path = save_clean_data(PREPRO_DIR, cleaned_pairs, cleaned_file_to_store)
         print("Preprocessing complete!")

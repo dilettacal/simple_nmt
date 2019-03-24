@@ -10,7 +10,10 @@ from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
 from utils.utils import maskNLLLoss, plot_grad_flow
 
+## Truncated backpropagation
 def detach_states(states):
+    #https://github.com/yunjey/pytorch-tutorial/blob/master/tutorials/02-intermediate/language_model/main.py#L59
+    #a lighter implementation of 'repackage_hidden' from: https://github.com/pytorch/examples/blob/master/word_language_model/main.py#L103
 	if states is None:
 		return states
 	return [state.detach() for state in states]
@@ -84,14 +87,13 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, trg_le
             n_totals += nTotal
     else:
         for t in range(max_target_len):
-            ### Truncate backpropagation through time ###
-            if tbptt:
-                decoder_input = decoder_input.detach()
-                decoder_states = detach_states(decoder_states)
-
             decoder_output, decoder_states = decoder(
                 decoder_input, decoder_states
             )
+            ### Truncate backpropagation through time ###
+            if tbptt:
+                #decoder_input = decoder_input.detach()
+                decoder_states = detach_states(decoder_states)
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
             decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
@@ -216,6 +218,20 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     validation_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(batch_size)])
                         for _ in range(val_iterations)]
 
+    #### Directory setup
+
+    directory = os.path.join(save_dir, model_name, corpus_name,
+                             '{}-{}_{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, encoder.emb_size,
+                                                     encoder.hidden_size, batch_size))
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    else:
+        print("An experiment with these settings has been already excuted. Deleting content...")
+        files_to_remove = [os.path.join(directory, f) for f in os.listdir(directory)]
+        for f in files_to_remove:
+            if os.path.isfile(f):
+                os.remove(f)
+
     # Initializations
     print('Initializing ...')
     start_iteration = 1
@@ -300,12 +316,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         layers = encoder.n_layers
         hidden_size = encoder.hidden_size
         # Save checkpoint
-        if (iteration % save_every == 0):
+        if (iteration % save_every == 0 or iteration == n_iteration):
 
-            directory = os.path.join(save_dir, model_name, corpus_name,
-                                     '{}-{}_{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, encoder.emb_size, encoder.hidden_size, batch_size))
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+
             torch.save({
                 'iteration': iteration,
                 'en': encoder.state_dict(),

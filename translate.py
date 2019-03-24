@@ -43,9 +43,11 @@ def translate(start_root):
         print("An error as occurred: %s" %e)
         print("Please run at least an experiment!")
         exit(-1)
-    print(checkpoints)
+    #print(checkpoints)
+    checkpoints = sorted(checkpoints)
+   # print(checkpoints)
     last_checkpoint = checkpoints[-1]
-    print(os.path.join(start_root, experiment_path[0], last_checkpoint))
+   # print(os.path.join(start_root, experiment_path[0], last_checkpoint))
 
     # Load model
     checkpoint = torch.load(os.path.join(start_root, experiment_path[0], last_checkpoint))

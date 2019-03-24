@@ -1,12 +1,9 @@
 import os
 import random
 
-import numpy
-import numpy as np
 import torch
-from torch.utils.data import SubsetRandomSampler
 
-from global_settings import device, USE_CUDA
+from global_settings import device
 import matplotlib.pyplot as plt
 
 # Source: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
