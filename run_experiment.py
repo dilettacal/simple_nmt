@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
     # Configure models
     model_name = ''
-    model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model_full'
+    model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model_full_'+str(len(pairs))
     hidden_size = args.hid
     encoder_n_layers = args.nlayers
     decoder_n_layers = args.nlayers
@@ -244,7 +244,7 @@ if __name__ == '__main__':
     clip = args.clip
     teacher_forcing_ratio = args.teacher
     learning_rate = args.lr
-    decoder_learning_ratio = 1.0 #5.0
+    decoder_learning_ratio = args.dec_lr
     n_iteration = args.iterations
     val_iteration = n_iteration
     print_every = args.log
@@ -269,6 +269,7 @@ if __name__ == '__main__':
     duration = end_time-start_time
     print('Training duration: {}'.format(duration))
 
+    print("Performing evaluation on test set...")
     test_loss = eval_test(test_batches, encoder, decoder)
     print("Test loss:", test_loss)
 
