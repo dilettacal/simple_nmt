@@ -211,11 +211,10 @@ if __name__ == '__main__':
         print("Source vocabulary:", input_lang.num_words)
         print("Target vocabulary:", output_lang.num_words)
 
-    test_batches = [batch2TrainData(input_lang, output_lang, pair) for pair in test_set]
 
-    print(len(test_batches))
+    test_batches = [batch2TrainData(input_lang, output_lang, [random.choice(test_set) for _ in range(1)])
+                        for _ in range(len(test_set))]
 
-    exit()
 
     print("Test batches:", len(test_batches))
 
