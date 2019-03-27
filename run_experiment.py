@@ -317,9 +317,10 @@ if __name__ == '__main__':
                           live_show=False)
 
         # plotting gradient flow for both encoder and decoder
-        plot_grad_flow(SAVE_DIR, model_name, FILENAME, decoder_n_layers, embedding_size,
-                       hidden_size,
-                       batch_size, enc_statistics, dec_statistics)
+        # TODO: This should be improved
+       # plot_grad_flow(SAVE_DIR, model_name, FILENAME, decoder_n_layers, embedding_size,
+        #               hidden_size,
+         #              batch_size, enc_statistics, dec_statistics)
 
         print("Plots stored!")
 

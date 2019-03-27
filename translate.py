@@ -11,12 +11,15 @@ import torch
 from torch import nn, optim
 
 from experiment.train_eval import GreedySearchDecoder, evaluateInput
-from global_settings import EXPERIMENT_DIR, LOG_FILE, device
+from global_settings import EXPERIMENT_DIR, LOG_FILE, device, DOCU_DIR, SAMPLES_FILE
 from model.model import EncoderLSTM, DecoderLSTM
+from run_experiment import str2bool
 from utils.tokenize import Voc
 
 
-def translate(start_root, path=None):
+samples = os.path.join(".", DOCU_DIR, SAMPLES_FILE)
+
+def translate(start_root, path=None, read_from_file=False):
     # start_root = "."
 
     print("Reading experiment information from: ")
@@ -33,7 +36,6 @@ def translate(start_root, path=None):
         lines= [path]
 
     experiment_path = [line.strip() for line in lines if "experiment/" in line]
-    print(experiment_path[0])
 
     # e.g. ['1-1', '512-256', '64'], num_layers, emb_size, hidden_size, batchsize --> [:-1] batch size for translating not relevant
     #model_infos = experiment_path[0].split("/")[-1].split("_")[:-1]  #e.g. ['1-1', '512-256']
@@ -105,7 +107,21 @@ def translate(start_root, path=None):
 
     searcher = GreedySearchDecoder(encoder, decoder)
 
-    evaluateInput(encoder, decoder, searcher, src_voc, trg_voc)
+    print("Starting translation process...")
+
+    if read_from_file:
+        translations = open(samples, mode="r", encoding="utf-8").read().split("\n")
+        results = evaluateInput(encoder, decoder, searcher, src_voc, trg_voc, from_file = translations)
+        store_file = os.path.join(start_root, experiment_path[0], "translation_results.txt")
+        with open(store_file, mode="w", encoding="utf-8") as f:
+            f.write("Experiment: {}\n".format(experiment_path[0]))
+            for result in results:
+                f.write("{} > {}\n".format(result[0], result[1]))
+        print("Translations stored in %s" %str(store_file))
+
+    else:
+        evaluateInput(encoder, decoder, searcher, src_voc, trg_voc, from_file = read_from_file)
+
 
 
 if __name__ == '__main__':
@@ -115,5 +131,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--path', type=str, default="",
                         help='experiment path')
+    parser.add_argument('--file', type=str2bool, default="False", help="Translate from keyboard (False) or from samples file (True)")
+
     args = parser.parse_args()
-    translate(".", path=args.path if args.path !="" else None)
+
+    translate(".", path=args.path if args.path !="" else None, read_from_file=args.file)

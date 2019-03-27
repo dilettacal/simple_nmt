@@ -406,38 +406,52 @@ def evaluate(searcher, src_voc, trg_voc, sentence, max_length=MAX_LENGTH):
 
 ######## Inference from input ##############
 
-def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc):
+def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc, from_file = None):
     """
-    Source: PyTorch Chatbot Tutorial
+    Adapted from: PyTorch Chatbot Tutorial
     Reads a sentence as keyboard input and returns its translation
     :param encoder:
     :param decoder:
     :param searcher:
     :param src_voc:
     :param trg_voc:
+    :param from_file: the file which sentences are read from
     :return:
     """
-    print("Let's translate!")
-    input_sentence = ''
-    while(1):
-        try:
-            # Get input sentence
-            input_sentence = input('Source > ')
-            # Check if it is quit case
-            if input_sentence == 'q' or input_sentence == 'quit': break
-            # Normalize sentence
-            input_sentence = preprocess_sentence(input_sentence)
-            # Evaluate sentence
-            output_words = evaluate(searcher, src_voc, trg_voc, input_sentence)
-            # Format and print response sentence
+    results = []
+
+    if from_file:
+        for line in from_file:
+            line = preprocess_sentence(line)
+            output_words = evaluate(searcher, src_voc, trg_voc, line)
             output_words[:] = [x for x in output_words if not (x == EOS or x == PAD)]
             if output_words:
-                print('Translation > ', ' '.join(output_words))
+                translation = ' '.join(output_words)
+                results.append([line, str(translation)])
             else:
-                print("No translation found!")
+                results.append([line, "No translation"])
+        return results
+    else:
+        input_sentence = ''
+        while(1):
+            try:
+                # Get input sentence
+                input_sentence = input('Source > ')
+                # Check if it is quit case
+                if input_sentence == 'q' or input_sentence == 'quit': break
+                # Normalize sentence
+                input_sentence = preprocess_sentence(input_sentence)
+                # Evaluate sentence
+                output_words = evaluate(searcher, src_voc, trg_voc, input_sentence)
+                # Format and print response sentence
+                output_words[:] = [x for x in output_words if not (x == EOS or x == PAD)]
+                if output_words:
+                    print('Translation > ', ' '.join(output_words))
+                else:
+                    print("No translation found!")
 
-        except KeyError:
-            print("Error: Encountered unknown word.")
+            except KeyError:
+                print("Error: Encountered unknown word.")
 
 
 #### Evaluation on test set
