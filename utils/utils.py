@@ -110,6 +110,7 @@ def split_data(data, test_ratio=0.2, seed=40):
     return train_set, val_set, test_set
 
 
+#### Not used ###########
 def plot_grad_flow(save_dir, modelname, corpus_name, n_layers, emb_size, hid_size, bs, enc_statistics, dec_statistics):
 
     directory = os.path.join(save_dir, modelname, corpus_name,

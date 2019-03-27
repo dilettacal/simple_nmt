@@ -5,8 +5,6 @@ experiment/checkpoints/simple_nmt_model30000/deu.txt/1-1_256
 """
 import argparse
 import os
-import random
-
 import torch
 from torch import nn, optim
 

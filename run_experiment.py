@@ -1,7 +1,6 @@
 import argparse
 import os
 import random
-from pickle import load
 from datetime import datetime
 import torch
 from torch import optim

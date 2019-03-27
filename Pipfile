@@ -13,7 +13,6 @@ torch = "*"
 torchvision = "*"
 torchtext = "*"
 jupyter = "*"
-scikit-learn = "*"
 
 [requires]
 python_version = "3.6"

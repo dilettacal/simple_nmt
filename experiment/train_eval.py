@@ -1,14 +1,11 @@
 import os
 import random
-
 from torch import nn
-
 from global_settings import device, MAX_LENGTH
 import torch
-
 from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
-from utils.utils import maskNLLLoss, plot_grad_flow
+from utils.utils import maskNLLLoss
 
 ## Truncated backpropagation
 def detach_states(states):
