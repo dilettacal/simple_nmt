@@ -5,6 +5,7 @@
 *.pkl
 *.h5
 !experiment/checkpoints/plots/*
+!translation_examples_for_testing.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
