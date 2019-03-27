@@ -240,6 +240,7 @@ if __name__ == '__main__':
     model_name = ''
     model_name += 'simple_nmt_model' + str(limit) if limit else 'simple_nmt_model_full_' + str(len(pairs))
     model_name += "" if teacher_forcing_ratio > 0.0 else "_no_teacher"
+    model_name += "" if voc_all else "train_voc"
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
