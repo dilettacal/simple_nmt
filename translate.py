@@ -5,6 +5,7 @@ experiment/checkpoints/simple_nmt_model30000/deu.txt/1-1_256
 """
 import argparse
 import os
+import random
 
 import torch
 from torch import nn, optim
@@ -105,6 +106,7 @@ def translate(start_root, path=None):
     searcher = GreedySearchDecoder(encoder, decoder)
 
     evaluateInput(encoder, decoder, searcher, src_voc, trg_voc)
+
 
 if __name__ == '__main__':
     ##### ArgumentParser ###########

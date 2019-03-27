@@ -316,7 +316,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         layers = encoder.n_layers
         hidden_size = encoder.hidden_size
         # Save checkpoint
-        if (iteration % save_every == 0 or iteration == n_iteration):
+        if (iteration % save_every == 0 or iteration == n_iteration-1):
 
 
             torch.save({
