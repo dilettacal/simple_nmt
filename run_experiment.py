@@ -219,8 +219,6 @@ if __name__ == '__main__':
     print("Test batches:", len(test_batches))
 
     # Configure models
-    model_name = ''
-    model_name += 'simple_nmt_model'+str(limit) if limit else 'simple_nmt_model_full_'+str(len(pairs))
     hidden_size = args.hid
     encoder_n_layers = args.nlayers
     decoder_n_layers = args.nlayers
@@ -230,6 +228,19 @@ if __name__ == '__main__':
     embedding_size = args.emb
     dropout = args.dropout
     tbptt = args.tbptt
+    clip = args.clip
+    teacher_forcing_ratio = args.teacher
+    learning_rate = args.lr
+    decoder_learning_ratio = args.dec_lr
+    n_iteration = args.iterations
+    val_iteration = n_iteration
+    print_every = args.log
+
+    save_every = 500
+
+    model_name = ''
+    model_name += 'simple_nmt_model' + str(limit) if limit else 'simple_nmt_model_full_' + str(len(pairs))
+    model_name += "" if teacher_forcing_ratio > 0.0 else "_no_teacher"
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
@@ -242,15 +253,7 @@ if __name__ == '__main__':
     print(encoder)
     print(decoder)
 
-    clip = args.clip
-    teacher_forcing_ratio = args.teacher
-    learning_rate = args.lr
-    decoder_learning_ratio = args.dec_lr
-    n_iteration = args.iterations
-    val_iteration = n_iteration
-    print_every = args.log
 
-    save_every = 500
 
     # Initialize optimizers
     print('Building optimizers ...')

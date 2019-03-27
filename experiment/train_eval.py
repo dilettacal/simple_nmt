@@ -318,7 +318,14 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         # Save checkpoint
         if (iteration % save_every == 0 or iteration == n_iteration-1):
 
+            ###check if a tar file already exists, if yes, delete it, to reduce memory usage
+            tar_files = os.listdir(directory)
+            for item in tar_files:
+                if item.endswith(".tar"):
+                    print("Removing existing models...")
+                    os.remove(os.path.join(directory, item))
 
+            #### Saving the model....
             torch.save({
                 'iteration': iteration,
                 'en': encoder.state_dict(),
