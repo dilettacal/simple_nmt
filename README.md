@@ -1,4 +1,5 @@
-# Vanilla LSTM Neural Machine Translator with PyTorch
+# Sequence Models in PyTorch
+## Vanilla LSTM Machine Translator
 
 Seminarprojekt "Spezielle Anwendungen der Informatik - K.I. in der Robotik"
 Bachelor of Science - Angewwandte Informatik HTW Berlin
