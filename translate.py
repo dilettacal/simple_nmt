@@ -3,6 +3,7 @@ Loads the model and translate given a keyboard input
 experiment/checkpoints/simple_nmt_model30000/deu.txt/1-1_256
 
 """
+import argparse
 import os
 
 import torch
@@ -14,16 +15,21 @@ from model.model import EncoderLSTM, DecoderLSTM
 from utils.tokenize import Voc
 
 
-def translate(start_root):
+def translate(start_root, path=None):
     # start_root = "."
 
     print("Reading experiment information from: ")
-    try:
-        with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), mode="r", encoding="utf-8") as f:
-            lines = f.readlines()
-    except IOError or FileNotFoundError or FileExistsError or RuntimeError:
-        print("Logging file does not exist!")
-        exit(-1)
+    if not path:
+        try:
+            with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), mode="r", encoding="utf-8") as f:
+                lines = f.readlines()
+                print("Lines:", lines)
+
+        except IOError or FileNotFoundError or FileExistsError or RuntimeError:
+            print("Logging file does not exist!")
+            exit(-1)
+    else:
+        lines= [path]
 
     experiment_path = [line.strip() for line in lines if "experiment/" in line]
     print(experiment_path[0])
@@ -101,4 +107,11 @@ def translate(start_root):
     evaluateInput(encoder, decoder, searcher, src_voc, trg_voc)
 
 if __name__ == '__main__':
-    translate(".")
+    ##### ArgumentParser ###########
+
+    parser = argparse.ArgumentParser(description='PyTorch Vanilla LSTM Machine Translator')
+
+    parser.add_argument('--path', type=str, default="",
+                        help='experiment path')
+    args = parser.parse_args()
+    translate(".", path=args.path if args.path !="" else None)
