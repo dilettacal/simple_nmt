@@ -1,5 +1,7 @@
 # Default word tokens
 import itertools
+import random
+
 import torch
 
 """
@@ -151,6 +153,7 @@ def outputVar(l, voc):
     return padVar, mask, max_target_len, lengths
 
 # Returns all items for a given batch of pairs
+#### Batching from Chatbot tutorial #####
 def batch2TrainData(src_voc, tar_voc, pair_batch):
     pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
     input_batch, output_batch = [], []
@@ -162,5 +165,39 @@ def batch2TrainData(src_voc, tar_voc, pair_batch):
     return inp, lengths, output, mask, max_target_len, out_lengths
 
 
+##### Batching from practical pytorch ####
+
+# Pad a with the PAD symbol
+def pad_seq(seq, max_length):
+    seq += [PAD_token for i in range(max_length - len(seq))]
+    return seq
 
 
+def random_batch(batch_size, pairs, input_lang, output_lang, seed=1):
+    random.seed(seed)
+    input_seqs = []
+    target_seqs = []
+    # Choose random pairs
+    for i in range(batch_size):
+        pair = random.choice(pairs)
+        #pair.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
+        input_seqs.append(indexesFromSentence(input_lang, pair[0]))
+        target_seqs.append(indexesFromSentence(output_lang, pair[1]))
+
+    # Zip into pairs, sort by length (descending), unzip
+    seq_pairs = sorted(zip(input_seqs, target_seqs), key=lambda p: len(p[0]), reverse=True)
+    input_seqs, target_seqs = zip(*seq_pairs)
+
+    # For input and target sequences, get array of lengths and pad with 0s to max length
+    input_lengths = [len(s) for s in input_seqs]
+    input_padded = [pad_seq(s, max(input_lengths)) for s in input_seqs]
+    target_lengths = [len(s) for s in target_seqs]
+    target_padded = [pad_seq(s, max(target_lengths)) for s in target_seqs]
+    mask = binaryMatrix(target_padded)
+    mask = torch.ByteTensor(mask).transpose(0,1)
+
+    # Turn padded arrays into (batch_size x max_len) tensors, transpose into (max_len x batch_size)
+    input_var = torch.LongTensor(input_padded).transpose(0, 1)
+    target_var = torch.LongTensor(target_padded).transpose(0, 1)
+
+    return input_var, input_lengths, target_var, target_lengths, mask
