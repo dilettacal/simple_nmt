@@ -266,7 +266,7 @@ if __name__ == '__main__':
     # Run training iterations
     print("Starting Training!")
     start_time = datetime.now()
-    val_loss, directory, train_history, val_history, enc_statistics, dec_statistics = \
+    val_loss, directory, train_history, val_statistics, _, _ = \
         trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
                    encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
                    print_every, save_every, clip, FILENAME, val_iteration, tbptt=tbptt)
@@ -318,8 +318,8 @@ if __name__ == '__main__':
 
     print("Plotting results...")
     try:
-        plot_training_results(model_name, train_history, val_history, SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size, batch_size, learning_rate,
-                              n_iterations = n_iteration,log_interval = print_every, live_show=False)
+        plot_training_results(model_name, train_history, val_statistics[0], SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size, batch_size, learning_rate,
+                              n_iterations = n_iteration, log_interval = print_every, val_plot = val_statistics[1], live_show=False)
         print("Plots stored!")
 
     except IOError or RuntimeError:

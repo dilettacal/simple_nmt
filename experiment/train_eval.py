@@ -264,6 +264,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
     encoder_avg_grads, decoder_avg_grads = [], []
     encoder_layers, decoder_layers = [], []
+    val_plot = 0
 
     for iteration in range(start_iteration, n_iteration):
         leave_training = False
@@ -290,11 +291,13 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         hidden_size = encoder.hidden_size
         val_loss = 0
 
+
         # Print progress
         if iteration % print_every == 0 or iteration == n_iteration-1:
             print_loss_avg = train_print_loss / print_every
             val_loss = eval_batch(val_batches, encoder, decoder)
             val_history.append(val_loss)
+            val_plot +=1
             #print_val_loss_avg = val_loss / print_every
             print_val_loss_avg = val_loss
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
@@ -336,7 +339,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             print("Stopping training...")
             break
 
-    return print_val_loss_avg, directory, train_history, val_history, [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
+    return print_val_loss_avg, directory, train_history, [val_history, val_plot], [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
 
 
 
@@ -475,7 +478,7 @@ def eval_batch(batch_list, encoder, decoder):
 
 #### Plot results
 
-def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, bs, lr, n_iterations, log_interval,
+def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, bs, lr, n_iterations, log_interval, val_plot,
                           live_show=False):
     """
     Plots training results
@@ -501,7 +504,8 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
         os.makedirs(directory)
 
     plt.plot(train_history)
-    x1 = np.arange(0, n_iterations, log_interval)
+    x1 = np.arange(0, len(train_history), log_interval)
+    #x1 = np.linspace(0, n_iterations, val_plot)
     plt.plot(x1, val_history, linestyle='--', marker='o', color='r')
     plt.title('model train vs validation loss')
     plt.ylabel('loss')
