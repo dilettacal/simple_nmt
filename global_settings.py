@@ -27,9 +27,9 @@ device = torch.device("cuda" if USE_CUDA else "cpu")
 
 #### EXPERIMENT (FIXED) SETTINGS #####
 
-LR_DECAY = 0.5 #how much the learning rate should be decayed if valid loss does not improve
+LR_DECAY = 0.7 #how much the learning rate should be decayed if valid loss does not improve
 MIN_LR = 1e-6
 MAX_LR = 0.06
-NUM_BAD_VALID_LOSS = 3
+NUM_BAD_VALID_LOSS = 5
 
-VAL_TRAIN_DELTA = 1.5
+VAL_TRAIN_DELTA = 2.2

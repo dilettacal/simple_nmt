@@ -260,6 +260,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     ##### Store plot results
     train_history = []
     val_history = []
+    #val_history.append(best_validation_loss)
 
     encoder_avg_grads, decoder_avg_grads = [], []
     encoder_layers, decoder_layers = [], []
@@ -276,7 +277,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                            encoder, decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=0, tbptt=tbptt)
 
 
-
         train_print_loss += train_loss
 
          #### store results
@@ -291,17 +291,17 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         val_loss = 0
 
         # Print progress
-        if iteration % print_every == 0:
+        if iteration % print_every == 0 or iteration == n_iteration-1:
             print_loss_avg = train_print_loss / print_every
             val_loss = eval_batch(val_batches, encoder, decoder)
-
+            val_history.append(val_loss)
             #print_val_loss_avg = val_loss / print_every
-            print_val_loss_avg =val_loss
+            print_val_loss_avg = val_loss
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
                   .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
             train_print_loss = 0
             val_print_loss = 0
-            print("Difference validation vs. training loss:", val_loss - train_loss)
+            print("Absolute difference validation vs. training loss:", np.abs(val_loss - train_loss))
 
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
@@ -332,12 +332,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                     leave_training = True
                     break
 
-        val_history.append(val_loss)
-
         if leave_training:
             print("Stopping training...")
             break
-
 
     return print_val_loss_avg, directory, train_history, val_history, [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
 
@@ -478,7 +475,8 @@ def eval_batch(batch_list, encoder, decoder):
 
 #### Plot results
 
-def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, bs, lr, live_show=False):
+def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, bs, lr, n_iterations, log_interval,
+                          live_show=False):
     """
     Plots training results
     :param modelname:
@@ -503,7 +501,8 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
         os.makedirs(directory)
 
     plt.plot(train_history)
-    plt.plot(np.linspace(0, len(train_history)), val_history)
+    x1 = np.arange(0, n_iterations, log_interval)
+    plt.plot(x1, val_history, linestyle='--', marker='o', color='r')
     plt.title('model train vs validation loss')
     plt.ylabel('loss')
     plt.xlabel('iteration - lr= {}'.format(lr))
