@@ -5,7 +5,7 @@ from datetime import datetime
 import torch
 from torch import optim
 
-from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters, eval_test, plot_training_results
+from experiment.train_eval import evaluateInput, GreedySearchDecoder, trainIters, eval_batch, plot_training_results
 from global_settings import device, FILENAME, SAVE_DIR, PREPRO_DIR, TRAIN_FILE, TEST_FILE, EXPERIMENT_DIR, LOG_FILE
 from model.model import EncoderLSTM, DecoderLSTM
 from utils.prepro import read_lines, preprocess_pipeline, load_cleaned_data, save_clean_data
@@ -213,11 +213,12 @@ if __name__ == '__main__':
         print("Target vocabulary:", output_lang.num_words)
 
 
-    test_batches = [batch2TrainData(input_lang, output_lang, [random.choice(test_set) for _ in range(1)])
-                        for _ in range(len(test_set))]
+    test_batches = [batch2TrainData(input_lang, output_lang, [test_set[i]])
+                        for i in range(len(test_set))]
 
 
     print("Test batches:", len(test_batches))
+
 
     # Configure models
     hidden_size = args.hid
@@ -281,7 +282,7 @@ if __name__ == '__main__':
     print('Training duration: {}'.format(duration))
 
     print("Performing evaluation on test set...")
-    test_loss = eval_test(test_batches, encoder, decoder)
+    test_loss = eval_batch(test_batches, encoder, decoder)
     print("Test loss:", test_loss)
 
     print("Checkponits saved in %s" %(directory))

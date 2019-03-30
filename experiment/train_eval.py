@@ -216,11 +216,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
     random.seed(1)
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
-                      for _ in range(n_iteration)]
+                        for _ in range(n_iteration)]
 
-    # Load batches for each iteration
-    validation_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(batch_size)])
-                        for _ in range(val_iterations)]
+    val_batches = [batch2TrainData(src_voc, tar_voc, [val_pairs[i]]) for i in range(len(val_pairs))]
 
     #### Directory setup
 
@@ -252,46 +250,38 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     encoder_layers, decoder_layers = [], []
 
     for iteration in range(start_iteration, n_iteration):
-        #Get the actual batch
-        training_batch = training_batches[iteration-1]
-        val_batch = validation_batches[iteration-1]
-
-        # Extract fields from batch
-        train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len = training_batch
-        val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len = val_batch
-
+        # Get the actual batch
         encoder.train()
         decoder.train()
 
-        K = train_max_len.item() // 2
-        #print("Max timesteps to unroll before performing backpropagation: %s" %K)
-
+        training_batch = training_batches[iteration - 1]
+        train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len = training_batch
         train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len,
-                           encoder, decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=K, tbptt=tbptt)
+                           encoder, decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=0, tbptt=tbptt)
+
+
+
         train_print_loss += train_loss
 
-
-        #### store results
+         #### store results
         train_history.append(train_loss)
+
         encoder.eval()
         decoder.eval()
 
-        val_loss = eval(val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len, encoder, decoder, batch_size)
-
-        val_print_loss += val_loss
-
-        val_history.append(val_loss)
-
+        val_loss= 0
 
         # Print progress
         if iteration % print_every == 0:
+
+            val_loss = eval_batch(val_batches, encoder, decoder)
             print_loss_avg = train_print_loss / print_every
-            print_val_loss_avg = val_print_loss / print_every
+            #print_val_loss_avg = val_loss / print_every
+            print_val_loss_avg  = val_loss
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
                   .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
             train_print_loss = 0
             val_print_loss = 0
-
 
 
         layers = encoder.n_layers
@@ -444,22 +434,22 @@ def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc, from_file = Non
 
 #### Evaluation on test set
 
-def eval_test(test_batches, encoder, decoder):
+def eval_batch(batch_list, encoder, decoder):
     """
     Performs evaluation on test set
-    :param test_batches:
+    :param batch_list:
     :param encoder:
     :param decoder:
     :return:
     """
     total_loss = 0
-    for batch in test_batches:
+    for batch in batch_list:
         test_inp_var, test_src_len, test_trg_var, test_mask, test_max_len, test_trg_len = batch
 
         test_loss = eval(test_inp_var, test_src_len, test_trg_var, test_mask, test_max_len, test_trg_len, encoder, decoder,
                     1)
         total_loss+= test_loss
-    return total_loss/len(test_batches)
+    return total_loss/len(batch_list)
 
 #### Plot results
 
