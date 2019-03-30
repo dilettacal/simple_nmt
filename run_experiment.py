@@ -106,6 +106,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--max_len', type=int, default=0, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
 
+    parser.add_argument('--cell', type=str, default="lstm", help="Cell type. Allowed values: 'lstm' (default)' or 'gru'")
+
 
     #### Start #####
 
@@ -235,6 +237,11 @@ if __name__ == '__main__':
     val_iteration = n_iteration
     print_every = args.log
 
+    cell_type = args.cell
+    if cell_type not in ["lstm", "gru"]:
+        cell_type = "lstm"
+        print("{} cell type not allowed. Cell type has been set to default value 'lstm'".format(args.cell))
+
     save_every = 500
 
     model_name = ''
@@ -244,8 +251,8 @@ if __name__ == '__main__':
 
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
-                         n_layers=encoder_n_layers, dropout=dropout)
-    decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers, dropout=dropout)
+                         n_layers=encoder_n_layers, dropout=dropout, cell_type=cell_type)
+    decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers, dropout=dropout, cell_type=cell_type)
 
     encoder = encoder.to(device)
     decoder = decoder.to(device)

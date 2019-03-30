@@ -10,18 +10,25 @@ Adaptation: Vanilla Encoder/Decoder, without attention and with LSTM cell instea
 """
 
 class EncoderLSTM(nn.Module):
-    def __init__(self, input_size, emb_size, hidden_size, n_layers=1, dropout=0.5, bidirectional=False):
+    def __init__(self, input_size, emb_size, hidden_size, n_layers=1, dropout=0.5, bidirectional=False, cell_type="lstm"):
         super(EncoderLSTM, self).__init__()
         self.n_layers = n_layers
         self.input_size = input_size
         self.emb_size = emb_size
         self.hidden_size = hidden_size
         self.bidirectional = bidirectional
+        self.cell_type = cell_type
 
 
         self.embedding = nn.Embedding(input_size, emb_size, padding_idx=0)
-        self.lstm = nn.LSTM(emb_size, hidden_size, n_layers,
-                           dropout=(dropout if n_layers > 1 else 0), bidirectional=bidirectional)
+        if cell_type == "lstm":
+            self.rnn = nn.LSTM(emb_size, hidden_size, n_layers,
+                               dropout=(dropout if n_layers > 1 else 0), bidirectional=bidirectional)
+        elif cell_type=="gru":
+            self.rnn = nn.GRU(emb_size, hidden_size, n_layers,
+                               dropout=(dropout if n_layers > 1 else 0), bidirectional=bidirectional)
+        else:
+            raise AttributeError("Cell type not allowed!")
         self.dropout= nn.Dropout(dropout)
 
     def forward(self, input_seq, input_lengths):
@@ -35,7 +42,7 @@ class EncoderLSTM(nn.Module):
         # Pack padded batch of sequences for RNN module
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
         # Forward pass through GRU
-        outputs, hidden = self.lstm(packed)
+        outputs, hidden = self.rnn(packed)
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
@@ -48,15 +55,21 @@ class EncoderLSTM(nn.Module):
 
 
 class DecoderLSTM(nn.Module):
-    def __init__(self, output_size, emb_size, hidden_size, n_layers=1, dropout=0.2):
+    def __init__(self, output_size, emb_size, hidden_size, n_layers=1, dropout=0.2, cell_type="lstm"):
         super(DecoderLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.n_layers = n_layers
+        self.cell_type = cell_type
 
         # Define layers
         self.embedding = nn.Embedding(output_size, emb_size, padding_idx=0)
-        self.lstm = nn.LSTM(emb_size, hidden_size, n_layers, dropout=(dropout if n_layers > 1 else 0))
+        if self.cell_type == "lstm":
+            self.rnn = nn.LSTM(emb_size, hidden_size, n_layers, dropout=(dropout if n_layers > 1 else 0))
+        elif self.cell_type == "gru":
+            self.rnn =  nn.GRU(emb_size, hidden_size, n_layers, dropout=(dropout if n_layers > 1 else 0))
+        else:
+            raise AttributeError("Cell type not supported!")
         self.dropout = nn.Dropout(dropout)
 
         self.out = nn.Linear(hidden_size, output_size)
@@ -70,7 +83,7 @@ class DecoderLSTM(nn.Module):
         embedded = self.dropout(embedded)
 
         # Forward through unidirectional GRU
-        output, hidden = self.lstm(embedded, last_hidden)
+        output, hidden = self.rnn(embedded, last_hidden)
         # Squeeze first dimension
         output = output.squeeze(0)
         # Prediction
