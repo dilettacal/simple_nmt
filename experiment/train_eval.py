@@ -7,6 +7,7 @@ from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
 from utils.utils import maskNLLLoss
 from global_settings import NUM_BAD_VALID_LOSS, LR_DECAY, MIN_LR, MAX_LR
+import numpy as np
 
 ## Truncated backpropagation
 def detach_states(states):
@@ -300,7 +301,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                   .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
             train_print_loss = 0
             val_print_loss = 0
-            print(val_loss - train_loss)
+            print("Difference validation vs. training loss:", val_loss - train_loss)
 
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
@@ -327,6 +328,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
 
                 if new_lr_enc < MIN_LR and new_lr_dec < MIN_LR:
+                    print("Learning rate too little!")
                     leave_training = True
                     break
 
@@ -501,7 +503,7 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
         os.makedirs(directory)
 
     plt.plot(train_history)
-    plt.plot(val_history)
+    plt.plot(np.linspace(0, len(train_history)), val_history)
     plt.title('model train vs validation loss')
     plt.ylabel('loss')
     plt.xlabel('iteration - lr= {}'.format(lr))
