@@ -282,10 +282,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
         val_history.append(val_loss)
 
-        #### Gradient statistics ##########
-
-        enc_params = encoder.named_parameters()
-        dec_params = decoder.named_parameters()
 
         # Print progress
         if iteration % print_every == 0:
