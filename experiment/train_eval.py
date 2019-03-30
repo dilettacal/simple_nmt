@@ -6,6 +6,7 @@ import torch
 from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
 from utils.utils import maskNLLLoss
+from global_settings import NUM_BAD_VALID_LOSS, LR_DECAY, MIN_LR
 
 ## Truncated backpropagation
 def detach_states(states):
@@ -18,9 +19,19 @@ def detach_states(states):
 ### Manage learning rate during training
 ### Manage optimizers: https://pytorch.org/docs/master/optim.html
 
-def adapt_lr(optimizer, decay_value):
-    for param_group in optimizer.param_groups:
+def adapt_lr(enc_optim, dec_optim, decay_value):
+    for param_group in enc_optim.param_groups:
         param_group['lr'] *= decay_value
+    new_enc_lr = enc_optim.param_groups[0]['lr']
+    print("New encoder optimizer learning rate {}".format(new_enc_lr))
+
+    for param_group in dec_optim.param_groups:
+        param_group['lr'] *= decay_value
+
+    new_dec_lr = dec_optim.param_groups[0]['lr']
+    print("New decoder optimizer learning rate {}".format(new_dec_lr))
+
+    return new_enc_lr, new_dec_lr
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
           encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5, tbptt=True):
@@ -214,6 +225,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     global directory
     directory = ""
 
+    best_validation_loss = float('inf')
+    n_bad_loss=0
+
     random.seed(1)
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
                         for _ in range(n_iteration)]
@@ -250,6 +264,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     encoder_layers, decoder_layers = [], []
 
     for iteration in range(start_iteration, n_iteration):
+        leave_training = False
         # Get the actual batch
         encoder.train()
         decoder.train()
@@ -283,6 +298,22 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             train_print_loss = 0
             val_print_loss = 0
 
+            if val_loss < best_validation_loss:
+                best_validation_loss = val_loss
+                ### Here the model should be actually saved
+            else:
+                n_bad_loss +=1
+            if n_bad_loss == NUM_BAD_VALID_LOSS:
+                n_bad_loss = 0
+                new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
+
+                if new_lr_enc < MIN_LR or new_lr_dec < MIN_LR:
+                    leave_training = True
+                    break
+
+
+
+
 
         layers = encoder.n_layers
         hidden_size = encoder.hidden_size
@@ -312,6 +343,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 'hidden_size': hidden_size
 
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
+
+        if leave_training:
+            break
 
 
     return print_val_loss_avg, directory, train_history, val_history, [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
