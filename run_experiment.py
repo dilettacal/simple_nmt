@@ -104,7 +104,7 @@ if __name__ == '__main__':
     ### Logging interval ###
     parser.add_argument('--log', type=int, default=100, help='report interval')
 
-    parser.add_argument('--max_len', type=int, default=10, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
+    parser.add_argument('--max_len', type=int, default=0, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
 
 
     #### Start #####
@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
     model_name = ''
     model_name += 'simple_nmt_model' + str(limit) if limit else 'simple_nmt_model_full_' + str(len(pairs))
-    model_name += "" if teacher_forcing_ratio > 0.0 else "_no_teacher"
+    model_name += "_teacher_{}".format(str(teacher_forcing_ratio)) if teacher_forcing_ratio > 0.0 else "_no_teacher"
     model_name += "" if voc_all else "train_voc"
 
     print('Building encoder and decoder ...')
