@@ -136,7 +136,6 @@ if __name__ == '__main__':
     exp_contraction = True
 
     limit = args.limit
-    trimming = False
 
     voc_all = args.voc_all
 
@@ -204,13 +203,6 @@ if __name__ == '__main__':
 
     print("Source vocabulary:", input_lang.num_words)
     print("Target vocabulary:", output_lang.num_words)
-
-    if trimming:
-        input_lang.trim(2)
-        output_lang.trim(3)
-
-        print("Source vocabulary:", input_lang.num_words)
-        print("Target vocabulary:", output_lang.num_words)
 
 
     test_batches = [batch2TrainData(input_lang, output_lang, [test_set[i]])
