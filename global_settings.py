@@ -1,6 +1,8 @@
 import os
 import torch
 
+##### FILE AND DIRECTORY SETTINGS #####
+
 FILENAME = "deu.txt"
 DATA_DIR = "data/"
 PREPRO_DIR = os.path.join(DATA_DIR, "prepro")
@@ -18,5 +20,13 @@ SAMPLES_FILE = "translation_examples_for_testing.txt"
 TRANSLATIONS_FROM_SAMPLES = "translations_from_sample.txt"
 
 
+#### CUDA SETTINGS ######
+
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
+
+#### EXPERIMENT (FIXED) SETTINGS #####
+
+LR_DECAY = 0.5
+MIN_LR = 1e-6
+NUM_BAD_VALID_LOSS = 10
