@@ -6,7 +6,7 @@ import torch
 from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
 from utils.utils import maskNLLLoss
-from global_settings import NUM_BAD_VALID_LOSS, LR_DECAY, MIN_LR
+from global_settings import NUM_BAD_VALID_LOSS, LR_DECAY, MIN_LR, MAX_LR
 
 ## Truncated backpropagation
 def detach_states(states):
@@ -286,6 +286,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
         val_loss= 0
 
+        layers = encoder.n_layers
+        hidden_size = encoder.hidden_size
+
         # Print progress
         if iteration % print_every == 0:
 
@@ -301,50 +304,42 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
                 ### Here the model should be actually saved
+                ###check if a tar file already exists, if yes, delete it, to reduce memory usage
+                tar_files = os.listdir(directory)
+                for item in tar_files:
+                    if item.endswith(".tar"):
+                        print("Removing existing models...")
+                        os.remove(os.path.join(directory, item))
+
+                #### Saving the model....
+                torch.save({
+                    'iteration': iteration,
+                    'en': encoder.state_dict(),
+                    'de': decoder.state_dict(),
+                    'en_opt': encoder_optimizer.state_dict(),
+                    'de_opt': decoder_optimizer.state_dict(),
+                    'loss': val_loss,
+                    'src_dict': src_voc.__dict__,
+                    'tar_dict': tar_voc.__dict__,
+                    'src_embedding': encoder.embedding.state_dict(),
+                    'trg_embedding': decoder.embedding.state_dict(),
+                    'n_layers': layers,  # Layer numbers the same for both components
+                    'hidden_size': hidden_size
+
+                }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
             else:
                 n_bad_loss +=1
             if n_bad_loss == NUM_BAD_VALID_LOSS:
                 n_bad_loss = 0
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
 
-                if new_lr_enc < MIN_LR or new_lr_dec < MIN_LR:
+                if new_lr_enc < MIN_LR and new_lr_dec < MIN_LR:
                     leave_training = True
                     break
 
 
-
-
-
-        layers = encoder.n_layers
-        hidden_size = encoder.hidden_size
-        # Save checkpoint
-        if (iteration % save_every == 0 or iteration == n_iteration-1):
-
-            ###check if a tar file already exists, if yes, delete it, to reduce memory usage
-            tar_files = os.listdir(directory)
-            for item in tar_files:
-                if item.endswith(".tar"):
-                    print("Removing existing models...")
-                    os.remove(os.path.join(directory, item))
-
-            #### Saving the model....
-            torch.save({
-                'iteration': iteration,
-                'en': encoder.state_dict(),
-                'de': decoder.state_dict(),
-                'en_opt': encoder_optimizer.state_dict(),
-                'de_opt': decoder_optimizer.state_dict(),
-                'loss': val_loss,
-                'src_dict': src_voc.__dict__,
-                'tar_dict': tar_voc.__dict__,
-                'src_embedding': encoder.embedding.state_dict(),
-                'trg_embedding': decoder.embedding.state_dict(),
-                'n_layers': layers, # Layer numbers the same for both components
-                'hidden_size': hidden_size
-
-            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
-
         if leave_training:
+            print("Stopping training...")
             break
 
 

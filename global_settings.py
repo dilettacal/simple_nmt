@@ -29,4 +29,5 @@ device = torch.device("cuda" if USE_CUDA else "cpu")
 
 LR_DECAY = 0.5
 MIN_LR = 1e-6
+MAX_LR = 0.06
 NUM_BAD_VALID_LOSS = 10

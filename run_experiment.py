@@ -265,8 +265,8 @@ if __name__ == '__main__':
 
     # Initialize optimizers
     print('Building optimizers ...')
-    encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
-    decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
+    encoder_optimizer = optim.Adamax(encoder.parameters(), lr=learning_rate)
+    decoder_optimizer = optim.Adamax(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
 
 
     # Run training iterations
