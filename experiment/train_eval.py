@@ -1,7 +1,7 @@
 import os
 import random
 from torch import nn
-from global_settings import device, MAX_LENGTH
+from global_settings import device, MAX_LENGTH, VAL_TRAIN_DELTA
 import torch
 from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
@@ -284,23 +284,23 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         encoder.eval()
         decoder.eval()
 
-        val_loss= 0
 
         layers = encoder.n_layers
         hidden_size = encoder.hidden_size
+        val_loss = 0
 
         # Print progress
         if iteration % print_every == 0:
-
-            val_loss = eval_batch(val_batches, encoder, decoder)
             print_loss_avg = train_print_loss / print_every
-            val_history.append(val_loss)
+            val_loss = eval_batch(val_batches, encoder, decoder)
+
             #print_val_loss_avg = val_loss / print_every
-            print_val_loss_avg  = val_loss
+            print_val_loss_avg =val_loss
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
                   .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
             train_print_loss = 0
             val_print_loss = 0
+            print(val_loss - train_loss)
 
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
@@ -322,7 +322,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 }, os.path.join(directory, '{}.tar'.format('checkpoint')))
             else:
                 n_bad_loss +=1
-            if n_bad_loss == NUM_BAD_VALID_LOSS:
+            if n_bad_loss == NUM_BAD_VALID_LOSS or (val_loss - train_loss > VAL_TRAIN_DELTA):
                 n_bad_loss = 0
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
 
@@ -330,6 +330,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                     leave_training = True
                     break
 
+        val_history.append(val_loss)
 
         if leave_training:
             print("Stopping training...")

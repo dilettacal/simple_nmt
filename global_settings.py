@@ -31,3 +31,5 @@ LR_DECAY = 0.5 #how much the learning rate should be decayed if valid loss does 
 MIN_LR = 1e-6
 MAX_LR = 0.06
 NUM_BAD_VALID_LOSS = 3
+
+VAL_TRAIN_DELTA = 1.5

@@ -51,7 +51,7 @@ def translate(start_root, path=None, read_from_file=False):
         print("Please run at least an experiment!")
         exit(-1)
     #print(checkpoints)
-    checkpoints = sorted(checkpoints)
+    #checkpoints = sorted(checkpoints)
    # print(checkpoints)
     last_checkpoint = checkpoints[-1]
    # print(os.path.join(start_root, experiment_path[0], last_checkpoint))
