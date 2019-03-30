@@ -15,6 +15,13 @@ def detach_states(states):
 		return states
 	return [state.detach() for state in states]
 
+### Manage learning rate during training
+### Manage optimizers: https://pytorch.org/docs/master/optim.html
+
+def adapt_lr(optimizer, decay_value):
+    for param_group in optimizer.param_groups:
+        param_group['lr'] *= decay_value
+
 def train(input_variable, lengths, target_variable, mask, max_target_len, trg_lengths, encoder, decoder,
           encoder_optimizer, decoder_optimizer, batch_size, clip, teacher_forcing_ratio=0.5, K=5, tbptt=True):
     """
@@ -279,25 +286,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
         enc_params = encoder.named_parameters()
         dec_params = decoder.named_parameters()
-
-        for n, p in enc_params:
-            if (p.requires_grad) and ("bias" not in n):
-                if iteration == 1:
-                    encoder_layers.append(n)
-                try:
-                    encoder_avg_grads.append(p.grad.abs().mean())
-                except AttributeError:
-                    pass
-
-
-        for n, p in dec_params:
-            if (p.requires_grad) and ("bias" not in n):
-                if iteration == 1:
-                    decoder_layers.append(n)
-                try:
-                    decoder_avg_grads.append(p.grad.abs().mean())
-                except AttributeError:
-                    pass
 
         # Print progress
         if iteration % print_every == 0:
