@@ -3,7 +3,7 @@ import itertools
 import torch
 
 """
-Mostly inspired by and adapted from: 
+Mostly taken and adapted from: 
 PyTorch Chatbot Tutorial: https://pytorch.org/tutorials/beginner/chatbot_tutorial.html
 """
 
