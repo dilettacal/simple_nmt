@@ -294,6 +294,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
             val_loss = eval_batch(val_batches, encoder, decoder)
             print_loss_avg = train_print_loss / print_every
+            val_history.append(val_loss)
             #print_val_loss_avg = val_loss / print_every
             print_val_loss_avg  = val_loss
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
@@ -303,14 +304,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
-                ### Here the model should be actually saved
-                ###check if a tar file already exists, if yes, delete it, to reduce memory usage
-                tar_files = os.listdir(directory)
-                for item in tar_files:
-                    if item.endswith(".tar"):
-                        print("Removing existing models...")
-                        os.remove(os.path.join(directory, item))
-
                 #### Saving the model....
                 torch.save({
                     'iteration': iteration,
@@ -326,7 +319,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                     'n_layers': layers,  # Layer numbers the same for both components
                     'hidden_size': hidden_size
 
-                }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
+                }, os.path.join(directory, '{}.tar'.format('checkpoint')))
             else:
                 n_bad_loss +=1
             if n_bad_loss == NUM_BAD_VALID_LOSS:
