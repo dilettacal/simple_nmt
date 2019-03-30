@@ -102,7 +102,7 @@ if __name__ == '__main__':
                                                                       "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
     ### Logging interval ###
-    parser.add_argument('--log', type=int, default=100, help='report interval')
+    parser.add_argument('--log_interval', type=int, default=100, help='report interval')
 
     parser.add_argument('--max_len', type=int, default=0, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
 
@@ -236,7 +236,7 @@ if __name__ == '__main__':
     decoder_learning_ratio = args.dec_lr
     n_iteration = args.iterations
     val_iteration = n_iteration
-    print_every = args.log
+    print_every = args.log_interval
 
     cell_type = args.cell
     if cell_type not in ["lstm", "gru"]:
@@ -253,15 +253,17 @@ if __name__ == '__main__':
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
                          n_layers=encoder_n_layers, dropout=dropout, cell_type=cell_type)
-    decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size, n_layers= decoder_n_layers, dropout=dropout, cell_type=cell_type)
+    decoder = DecoderLSTM(output_size=output_size, emb_size=embedding_size, hidden_size=hidden_size,
+                          n_layers= decoder_n_layers, dropout=dropout, cell_type=cell_type)
+
+    assert encoder.cell_type == decoder.cell_type
+    assert encoder.n_layers == decoder.n_layers
 
     encoder = encoder.to(device)
     decoder = decoder.to(device)
     print('Models built:')
     print(encoder)
     print(decoder)
-
-
 
     # Initialize optimizers
     print('Building optimizers ...')
