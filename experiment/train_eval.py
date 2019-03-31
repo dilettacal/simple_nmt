@@ -236,7 +236,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
                         for _ in range(n_iteration)]
 
-    val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(val_batch_size)]) for
+    val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(batch_size)]) for
                    _ in range(n_iteration)]
 
 
@@ -265,22 +265,19 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     ##### Store plot results
     train_history = []
     val_history = []
-    #val_history.append(best_validation_loss)
 
     encoder_avg_grads, decoder_avg_grads = [], []
     encoder_layers, decoder_layers = [], []
-    val_plot = 0
 
     for iteration in range(start_iteration, n_iteration):
 
-
         leave_training = False
-        # Get the actual batch
-        encoder.train()
-        decoder.train()
-
+        ### Training batch
         training_batch = training_batches[iteration - 1]
         train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len = training_batch
+
+        encoder.train()
+        decoder.train()
         train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len,
                            encoder, decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=0, tbptt=tbptt)
 
@@ -288,6 +285,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         #### store results
         train_history.append(train_loss)
 
+        ### Validation
         val_batch = val_batches[iteration-1]
         val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len = val_batch
 
@@ -313,9 +311,12 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             print_val_loss_avg = val_print_loss / print_every
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
                   .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
+            print("Absolute difference validation vs. training loss:", np.abs(print_val_loss_avg - print_loss_avg))
+
+            ### reset counters
             train_print_loss = 0
             val_print_loss = 0
-            print("Absolute difference validation vs. training loss:", np.abs(print_val_loss_avg - print_loss_avg))
+
 
             if val_loss < best_validation_loss:
                 ### Update validation loss and save the model
@@ -354,7 +355,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             print("Learning rate decreased too much! Stopping training...")
             break
 
-    return print_val_loss_avg, directory, train_history, [val_history, val_plot], [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
+    return print_val_loss_avg, directory, train_history, val_history, [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
 
 
 

@@ -161,34 +161,25 @@ if __name__ == '__main__':
 
     src_sents, trg_sents = [], []
 
-    if voc_all:
-        # build vocabularies based on all data set (test set included)
-        src_sents = [item[0] for item in pairs]
-        trg_sents = [item[1] for item in pairs]
-
-    print("Limit set: %s" %str(limit))
 
     if limit:
         pairs = pairs[:limit]
+        print("Limit set: %s" % str(limit))
 
     train_set, val_set, test_set = split_data(pairs, seed=args.seed)
-
     print("Data in train set:", len(train_set))
     print("Data in val set:", len(val_set))
     print("Data in test set:", len(test_set))
 
-
     print("Building vocabularies...")
-    train_data = train_set+val_set
 
+    if voc_all:
+        train_data = train_set + val_set
+    else:
+        train_data = train_set
 
-    if not voc_all:
-        # Build vocabularies based on train set
-        src_sents = [item[0] for item in train_data]
-        trg_sents = [item[1] for item in train_data]
-
-   # print("Source:", src_sents)
-   # print("Target:", trg_sents)
+    src_sents = [item[0] for item in train_data]
+    trg_sents = [item[1] for item in train_data]
 
     max_src_l = max_length(src_sents)
     max_trg_l = max_length(trg_sents)
@@ -201,7 +192,6 @@ if __name__ == '__main__':
 
     print("Source vocabulary:", input_lang.num_words)
     print("Target vocabulary:", output_lang.num_words)
-
 
     test_batches = [batch2TrainData(input_lang, output_lang, [test_set[i]])
                         for i in range(len(test_set))]
