@@ -276,7 +276,7 @@ if __name__ == '__main__':
     print('Training duration: {}'.format(duration))
 
     print("Performing evaluation on test set...")
-    test_loss = eval_batch(test_batches, encoder, decoder)
+    test_loss = eval_batch(test_batches, encoder, decoder, 1)
     print("Test loss:", test_loss)
 
     print("Checkponits saved in %s" %(directory))

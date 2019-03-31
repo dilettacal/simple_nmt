@@ -226,7 +226,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     global directory
     directory = ""
 
-    val_batch_size = 1
+    val_batch_size = 12
 
     best_validation_loss = float('inf')
     n_bad_loss=0
@@ -300,13 +300,16 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             if val_batch_size == 1:
                 ### just take the whole dataset
                 val_batches = [batch2TrainData(src_voc, tar_voc, [val_pairs[i]]) for i in range(len(val_pairs))]
-            else:
-                val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice[val_pairs] for _ in val_batch_size]) for _ in range(len(val_pairs))]
+                val_loss = eval_batch(val_batches, encoder, decoder, 1)
 
-            print_loss_avg = train_print_loss / print_every
-            val_loss = eval_batch(val_batches, encoder, decoder)
-            val_history.append(val_loss)
+            else:
+                val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(val_batch_size)]) for _ in range(len(val_pairs))]
+                val_loss = eval_batch(val_batches, encoder, decoder, val_batch_size)
+
+            print_loss_avg = train_print_loss / print_every # durchschnitt train loss
+            val_history.append(val_loss) # store valid loss for plotting
             val_plot +=1
+
             #print_val_loss_avg = val_loss / print_every
             print_val_loss_avg = val_loss
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
@@ -337,18 +340,20 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 ### increase the number of bad validation loss
                 n_bad_loss +=1
             ### Here perform learning rate decay conditioned on the number of bad val losses or on difference between train and val loss
-            if n_bad_loss == NUM_BAD_VALID_LOSS or (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA):
-                n_bad_loss = 0
+            delta_condition = (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA)
+            if n_bad_loss == NUM_BAD_VALID_LOSS or delta_condition:
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
+                n_bad_loss = 0
                 lr_changes +=1
 
                 ### Adaptation of validation batch size
-                if lr_changes > LR_CONSTRAINT and (new_lr_dec > MIN_LR and new_lr_enc > MIN_LR):
+                if lr_changes == 2 and (new_lr_dec > MIN_LR and new_lr_enc > MIN_LR):
                     ###update batch size in validation batch_size
-                    val_batch_size+=11
+                    val_batch_size += 12
                     if val_batch_size > MAX_VAL_BATCH_SIZE:
                         val_batch_size = MAX_VAL_BATCH_SIZE
                     print("Validation batch size increased to {}".format(val_batch_size))
+                    lr_changes = 0
 
                 ### Learning rate too much decreased, leave training
                 if new_lr_enc < MIN_LR and new_lr_dec < MIN_LR:
@@ -479,7 +484,7 @@ def evaluateInput(encoder, decoder, searcher,  src_voc, trg_voc, from_file = Non
 
 #### Evaluation on test set
 
-def eval_batch(batch_list, encoder, decoder):
+def eval_batch(batch_list, encoder, decoder, batch_size):
     """
     Performs evaluation on test set
     :param batch_list:
@@ -492,7 +497,7 @@ def eval_batch(batch_list, encoder, decoder):
         test_inp_var, test_src_len, test_trg_var, test_mask, test_max_len, test_trg_len = batch
 
         test_loss = eval(test_inp_var, test_src_len, test_trg_var, test_mask, test_max_len, test_trg_len, encoder, decoder,
-                    1)
+                    batch_size)
         total_loss+= test_loss
     return total_loss/len(batch_list)
 
