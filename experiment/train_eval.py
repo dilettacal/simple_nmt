@@ -236,14 +236,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
                         for _ in range(n_iteration)]
 
-    ### Generate validation batches
-    if val_batch_size == 1:
-        ### just take the whole dataset
-        val_batches = [batch2TrainData(src_voc, tar_voc, [val_pairs[i]]) for i in range(len(val_pairs))]
-
-    else:
-        val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(val_batch_size)]) for
-                       _ in range(len(val_pairs))]
+    val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(val_batch_size)]) for
+                   _ in range(n_iteration)]
 
 
     #### Directory setup
@@ -279,9 +273,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
     for iteration in range(start_iteration, n_iteration):
 
-        if val_batch_size != start_val_bs:
-            val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(val_batch_size)])
-                           for _ in range(len(val_pairs))]
 
         leave_training = False
         # Get the actual batch
@@ -293,10 +284,23 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         train_loss = train(train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len,
                            encoder, decoder, encoder_optimizer, decoder_optimizer, batch_size, clip, K=0, tbptt=tbptt)
 
-
         train_print_loss += train_loss
-         #### store results
+        #### store results
         train_history.append(train_loss)
+
+        val_batch = val_batches[iteration-1]
+        val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len = val_batch
+
+        encoder.eval()
+        decoder.eval()
+
+        val_loss = eval(val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len, encoder, decoder,
+                        batch_size)
+
+        val_print_loss += val_loss
+
+        val_history.append(val_loss)
+
 
         layers = encoder.n_layers
         hidden_size = encoder.hidden_size
@@ -305,18 +309,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
         # Logging and validation check
         if iteration % print_every == 0 or iteration == n_iteration-1:
-
-            encoder.eval()
-            decoder.eval()
-
-            val_loss = eval_batch(val_batches, encoder, decoder, val_batch_size)
-
-            print_loss_avg = train_print_loss / print_every # durchschnitt train loss
-            val_history.append(val_loss) # store valid loss for plotting
-            val_plot +=1
-
-            #print_val_loss_avg = val_loss / print_every
-            print_val_loss_avg = val_loss
+            print_loss_avg = train_print_loss / print_every
+            print_val_loss_avg = val_print_loss / print_every
             print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
                   .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
             train_print_loss = 0
@@ -350,15 +344,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
                 n_bad_loss = 0
                 lr_changes +=1
-
-                ### Adaptation of validation batch size
-                if lr_changes == 2 and (new_lr_dec > MIN_LR and new_lr_enc > MIN_LR):
-                    ###update batch size in validation batch_size
-                    val_batch_size += 12
-                    if val_batch_size > MAX_VAL_BATCH_SIZE:
-                        val_batch_size = MAX_VAL_BATCH_SIZE
-                    print("Validation batch size increased to {}".format(val_batch_size))
-                    lr_changes = 0
 
                 ### Learning rate too much decreased, leave training
                 if new_lr_enc < MIN_LR and new_lr_dec < MIN_LR:
