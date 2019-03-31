@@ -90,7 +90,7 @@ if __name__ == '__main__':
                              "If 'false', 'detach()' is not applied.\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
     ### Dropout ###
-    parser.add_argument('--dropout', type=float, default=0.2,
+    parser.add_argument('--dropout', type=float, default=0.0,
                         help='dropout applied to layers (0.0 = no dropout). Values range allowed: [0.0 - 1.0]')
 
     ### Seed ###
@@ -105,8 +105,6 @@ if __name__ == '__main__':
     parser.add_argument('--log_interval', type=int, default=100, help='report interval')
 
     parser.add_argument('--max_len', type=int, default=0, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
-
-    parser.add_argument('--cell', type=str, default="lstm", help="Cell type. Allowed values: 'lstm' (default)' or 'gru'")
 
 
     #### Start #####
@@ -230,7 +228,7 @@ if __name__ == '__main__':
     val_iteration = n_iteration
     print_every = args.log_interval
 
-    cell_type = args.cell
+    cell_type = "lstm" ### default, as GRU implementation still needs changes
     if cell_type not in ["lstm", "gru"]:
         cell_type = "lstm"
         print("{} cell type not allowed. Cell type has been set to default value 'lstm'".format(args.cell))

@@ -10,7 +10,7 @@ Adaptation: Vanilla Encoder/Decoder, without attention and with LSTM cell instea
 """
 
 class EncoderLSTM(nn.Module):
-    def __init__(self, input_size, emb_size, hidden_size, n_layers=1, dropout=0.5, bidirectional=False, cell_type="lstm"):
+    def __init__(self, input_size, emb_size, hidden_size, n_layers=1, dropout=0.0, bidirectional=False, cell_type="lstm"):
         super(EncoderLSTM, self).__init__()
         self.n_layers = n_layers
         self.input_size = input_size
@@ -25,6 +25,7 @@ class EncoderLSTM(nn.Module):
             self.rnn = nn.LSTM(emb_size, hidden_size, n_layers,
                                dropout=(dropout if n_layers > 1 else 0), bidirectional=bidirectional)
         elif cell_type=="gru":
+            ### Das braucht noch Anpassungen!
             self.rnn = nn.GRU(emb_size, hidden_size, n_layers,
                                dropout=(dropout if n_layers > 1 else 0), bidirectional=bidirectional)
         else:
@@ -65,12 +66,12 @@ class DecoderLSTM(nn.Module):
         # Define layers
         self.embedding = nn.Embedding(output_size, emb_size, padding_idx=0)
         if self.cell_type == "lstm":
-            self.rnn = nn.LSTM(emb_size, hidden_size, n_layers, dropout=(dropout if n_layers > 1 else 0))
+            self.rnn = nn.LSTM(emb_size, hidden_size, n_layers)
         elif self.cell_type == "gru":
-            self.rnn =  nn.GRU(emb_size, hidden_size, n_layers, dropout=(dropout if n_layers > 1 else 0))
+            ### Das braucht noch Anpassungen!
+            self.rnn =  nn.GRU(emb_size, hidden_size, n_layers)
         else:
             raise AttributeError("Cell type not supported!")
-        self.dropout = nn.Dropout(dropout)
 
         self.out = nn.Linear(hidden_size, output_size)
         # self.softmax = nn.LogSoftmax(dim=1)
@@ -80,7 +81,7 @@ class DecoderLSTM(nn.Module):
         #last_hidden = [seq_len, batch_size, hidden_size] #1, 64, 256
         #embedded = [seq_len, batch_size, embedding_size]
         embedded = self.embedding(input_step)
-        embedded = self.dropout(embedded)
+        embedded = F.relu(embedded)
 
         # Forward through unidirectional GRU
         output, hidden = self.rnn(embedded, last_hidden)
