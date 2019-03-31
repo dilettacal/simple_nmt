@@ -307,7 +307,7 @@ if __name__ == '__main__':
     print("Plotting results...")
     try:
         plot_training_results(model_name, train_history, val_statistics[0], SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size, batch_size, learning_rate,
-                              n_iterations = n_iteration, log_interval = print_every, val_plot = val_statistics[1], live_show=False)
+                              n_iterations = n_iteration, live_show=False)
         print("Plots stored!")
 
     except IOError or RuntimeError:

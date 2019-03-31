@@ -494,8 +494,7 @@ def eval_batch(batch_list, encoder, decoder, batch_size):
 
 #### Plot results
 
-def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, bs, lr, n_iterations, log_interval, val_plot,
-                          live_show=False):
+def plot_training_results(modelname, train_history, val_history, save_dir, corpus_name, n_layers, embedding_size, hidden_size, bs, lr, n_iterations,live_show=False):
     """
     Plots training results
     :param modelname:
@@ -519,10 +518,10 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
     if not os.path.isdir(directory):
         os.makedirs(directory)
 
-    plt.plot(train_history)
-    x1 = np.arange(0, len(train_history), log_interval)
+    plt.plot(train_history, color='b')
+    #x1 = np.arange(0, len(train_history), log_interval)
     #x1 = np.linspace(0, n_iterations, val_plot)
-    plt.plot(x1, val_history, linestyle='--', marker='o', color='r')
+    plt.plot(val_history, color='r')
     plt.title('model train vs validation loss')
     plt.ylabel('loss')
     plt.xlabel('iteration - lr= {}'.format(lr))
