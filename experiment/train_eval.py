@@ -1,7 +1,7 @@
 import os
 import random
 from torch import nn
-from global_settings import device, MAX_LENGTH, VAL_TRAIN_DELTA
+from global_settings import device, MAX_LENGTH, VAL_TRAIN_DELTA, LR_CONSTRAINT, MAX_VAL_BATCH_SIZE
 import torch
 from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
@@ -226,6 +226,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     global directory
     directory = ""
 
+    val_batch_size = 1
+
     best_validation_loss = float('inf')
     n_bad_loss=0
 
@@ -233,7 +235,6 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
                         for _ in range(n_iteration)]
 
-    val_batches = [batch2TrainData(src_voc, tar_voc, [val_pairs[i]]) for i in range(len(val_pairs))]
 
     #### Directory setup
 
@@ -290,10 +291,18 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         layers = encoder.n_layers
         hidden_size = encoder.hidden_size
         val_loss = 0
+        lr_changes = 0
 
-
-        # Print progress
+        # Logging and validation check
         if iteration % print_every == 0 or iteration == n_iteration-1:
+
+            ### Generate validation batches
+            if val_batch_size == 1:
+                ### just take the whole dataset
+                val_batches = [batch2TrainData(src_voc, tar_voc, [val_pairs[i]]) for i in range(len(val_pairs))]
+            else:
+                val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice[val_pairs] for _ in val_batch_size]) for _ in range(len(val_pairs))]
+
             print_loss_avg = train_print_loss / print_every
             val_loss = eval_batch(val_batches, encoder, decoder)
             val_history.append(val_loss)
@@ -307,8 +316,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             print("Absolute difference validation vs. training loss:", np.abs(print_val_loss_avg - print_loss_avg))
 
             if val_loss < best_validation_loss:
+                ### Update validation loss and save the model
                 best_validation_loss = val_loss
-                #### Saving the model....
                 torch.save({
                     'iteration': iteration,
                     'en': encoder.state_dict(),
@@ -325,18 +334,29 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
                 }, os.path.join(directory, '{}.tar'.format('checkpoint')))
             else:
+                ### increase the number of bad validation loss
                 n_bad_loss +=1
+            ### Here perform learning rate decay conditioned on the number of bad val losses or on difference between train and val loss
             if n_bad_loss == NUM_BAD_VALID_LOSS or (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA):
                 n_bad_loss = 0
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
+                lr_changes +=1
 
+                ### Adaptation of validation batch size
+                if lr_changes > LR_CONSTRAINT and (new_lr_dec > MIN_LR and new_lr_enc > MIN_LR):
+                    ###update batch size in validation batch_size
+                    val_batch_size+=11
+                    if val_batch_size > MAX_VAL_BATCH_SIZE:
+                        val_batch_size = MAX_VAL_BATCH_SIZE
+                    print("Validation batch size increased to {}".format(val_batch_size))
+
+                ### Learning rate too much decreased, leave training
                 if new_lr_enc < MIN_LR and new_lr_dec < MIN_LR:
-                    print("Learning rate too little!")
                     leave_training = True
                     break
 
         if leave_training:
-            print("Stopping training...")
+            print("Learning rate decreased too much! Stopping training...")
             break
 
     return print_val_loss_avg, directory, train_history, [val_history, val_plot], [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
