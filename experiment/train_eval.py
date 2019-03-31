@@ -304,7 +304,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                   .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
             train_print_loss = 0
             val_print_loss = 0
-            print("Absolute difference validation vs. training loss:", np.abs(val_loss - train_loss))
+            print("Absolute difference validation vs. training loss:", np.abs(print_val_loss_avg - print_loss_avg))
 
             if val_loss < best_validation_loss:
                 best_validation_loss = val_loss
@@ -326,7 +326,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 }, os.path.join(directory, '{}.tar'.format('checkpoint')))
             else:
                 n_bad_loss +=1
-            if n_bad_loss == NUM_BAD_VALID_LOSS or (val_loss - train_loss > VAL_TRAIN_DELTA):
+            if n_bad_loss == NUM_BAD_VALID_LOSS or (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA):
                 n_bad_loss = 0
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
 

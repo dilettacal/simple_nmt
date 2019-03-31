@@ -59,7 +59,7 @@ if __name__ == '__main__':
                         help='initial learning rate')
 
     ### Gradient clipping ###
-    parser.add_argument('--clip', type=str2float, default="50",
+    parser.add_argument('--clip', type=str2float, default="",
                         help='gradient clipping. Provided as a float number or an empty string \" \", if no clipping should happen.')
 
     ### Number of iterations ###
