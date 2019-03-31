@@ -7,10 +7,27 @@ What do you do?
 I am reading a book
 I like reading books
 Look at the sky
-It's raining
+She loves him
+She likes jogging
+He likes golf
+He plays guitar
+I am in the garden
+I am in the kitchen
+You are shy
+You are very smart
+I like listening to music
+I like music
+She is rich
+She is a rich woman
+She is an actress
+He is an engineer
+He is a football player
+He plays football
+You live in the city
+How old are you
 I love being with people
 I am outside
-I lvie abroad
+I live abroad
 I love you
 Do you love me?
 She likes you
@@ -53,3 +70,31 @@ You are happy
 It is late, go to bed
 I want to sleep
 I really love pizza
+I like horror films
+I love to go to the sea
+Next month we will travel abroad
+Last year we went abroad
+He thinks, that she is beautiful
+She studies at the university
+She missed the train and took a taxi
+They went to the doctor
+They work in the hospital. The hospital is in the city.
+The cat is on the corner
+The dog is sleeping on the bed
+Your father is a great teacher
+Your mother is very tall
+I am very sad that you leave
+You are leaving
+You left the building
+I think I will go
+I am leaving
+I think you should stop writing this essay
+This task is funny but also very hard
+The quick brown fox ran in the garden
+Next time I want to speak with you
+Speak with me
+Turn on the light
+Please, turn on the light
+Turn off the light
+Get up and take your coffee
+Tell me a joke

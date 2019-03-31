@@ -63,14 +63,14 @@ if __name__ == '__main__':
                         help='gradient clipping. Provided as a float number or an empty string \" \", if no clipping should happen.')
 
     ### Number of iterations ###
-    parser.add_argument('--iterations', type=int, default=15000,
+    parser.add_argument('--iterations', type=int, default=10000,
                         help='number of iterations')
 
     ### Batch size ###
-    parser.add_argument('--batch_size', type=int, default=24, help='batch size')
+    parser.add_argument('--batch_size', type=int, default=64, help='batch size')
 
     ### Teacher forcing ratio ###
-    parser.add_argument('--teacher', type=float, default=0.2, help="Teacher forcing ration during training phase")
+    parser.add_argument('--teacher', type=float, default=0.9, help="Teacher forcing ration during training phase")
 
     ### How many data ###
     parser.add_argument('--limit', type=int, help='Reduce dataset to N samples')
@@ -79,8 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--dec_lr', type=int, default=1, help="Decoder learning rate decay. This must be provided as integer, as it is multiplied by the learning rate (lr)")
 
     ### Compute vocabulary on all dataset or only training samples ###
-    parser.add_argument('--voc_all', type=str2bool, nargs='?',
-                        const=True, default="True",
+    parser.add_argument('--voc_all', type=str2bool, default="False",
                         help="Get vocabulary from all dataset (true) or only from training data (false).\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
@@ -106,6 +105,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--max_len', type=int, default=0, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
 
+    parser.add_argument('--optim', type=str, default='adamax', help="Training optimizer. Possible values: 'adamax', 'adam', 'adagrad', 'sgd'")
 
     #### Start #####
 
@@ -225,11 +225,21 @@ if __name__ == '__main__':
 
     save_every = 500
 
+    optimizer = args.optim.lower()
+    if optimizer not in ['adam', 'adamax', 'adagrad', 'sgd']:
+        optimizer = 'adamax'
+        print("Provided optimizer is not supported. Standard optimizer is used.")
+
     model_name = ''
     model_name += 'simple_nmt_model' + str(limit) if limit else 'simple_nmt_model_full_' + str(len(pairs))
     model_name += "_teacher_{}".format(str(teacher_forcing_ratio)) if teacher_forcing_ratio > 0.0 else "_no_teacher"
-    model_name += "" if voc_all else "train_voc"
+    model_name += "" if voc_all else "_train_voc"
+    model_name += "_clip-{}".format(clip) if clip else ""
+    model_name += "_tbptt" if tbptt else ""
+    model_name += "_"+optimizer
+    model_name += "_lr-{}-{}".format(learning_rate, decoder_learning_ratio)
 
+    print("Model name:", model_name)
     print('Building encoder and decoder ...')
     encoder = EncoderLSTM(input_size=input_size, emb_size=embedding_size, hidden_size=hidden_size,
                          n_layers=encoder_n_layers, dropout=dropout, cell_type=cell_type)
@@ -250,6 +260,17 @@ if __name__ == '__main__':
     encoder_optimizer = optim.Adamax(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.Adamax(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
 
+    if optimizer == 'adam':
+        encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
+        decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
+    elif optimizer == 'sgd':
+        encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
+        decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
+    elif optimizer == 'adagrad':
+        encoder_optimizer = optim.Adagrad(encoder.parameters(), lr=learning_rate)
+        decoder_optimizer = optim.Adagrad(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
+
+    print(encoder_optimizer, decoder_optimizer)
 
     # Run training iterations
     print("Starting Training!")
@@ -306,7 +327,7 @@ if __name__ == '__main__':
 
     print("Plotting results...")
     try:
-        plot_training_results(model_name, train_history, val_statistics[0], SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size, batch_size, learning_rate,
+        plot_training_results(model_name, train_history, val_statistics, SAVE_DIR, FILENAME, decoder_n_layers, embedding_size, hidden_size, batch_size, learning_rate,
                               n_iterations = n_iteration, live_show=False)
         print("Plots stored!")
 

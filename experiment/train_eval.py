@@ -229,7 +229,8 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     val_batch_size = 12
     start_val_bs = val_batch_size
 
-    best_validation_loss = float('inf')
+    best_validation_loss = 20
+    #print("Start validation loss", best_validation_loss)
     n_bad_loss=0
 
     random.seed(1)
@@ -268,10 +269,12 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
     encoder_avg_grads, decoder_avg_grads = [], []
     encoder_layers, decoder_layers = [], []
+    leave_training = False
 
     for iteration in range(start_iteration, n_iteration):
 
-        leave_training = False
+        if leave_training:
+            break
         ### Training batch
         training_batch = training_batches[iteration - 1]
         train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len = training_batch
@@ -318,9 +321,13 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
             val_print_loss = 0
 
 
-            if val_loss < best_validation_loss:
+            if print_val_loss_avg < best_validation_loss:
                 ### Update validation loss and save the model
-                best_validation_loss = val_loss
+                best_validation_loss = print_val_loss_avg
+                print("Validation loss improved to {:.4f}".format(best_validation_loss))
+
+                if n_bad_loss != 0: n_bad_loss -=1
+
                 torch.save({
                     'iteration': iteration,
                     'en': encoder.state_dict(),
@@ -341,19 +348,21 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                 n_bad_loss +=1
             ### Here perform learning rate decay conditioned on the number of bad val losses or on difference between train and val loss
             delta_condition = (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA)
+
             if n_bad_loss == NUM_BAD_VALID_LOSS or delta_condition:
+                print("Bad loss", n_bad_loss)
+                print("Best validation loss", best_validation_loss)
                 new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
                 n_bad_loss = 0
                 lr_changes +=1
 
                 ### Learning rate too much decreased, leave training
-                if new_lr_enc < MIN_LR and new_lr_dec < MIN_LR:
+                if new_lr_enc < MIN_LR or new_lr_dec < MIN_LR:
                     leave_training = True
+                    print("Learning rate decreased too much! Stopping training...")
                     break
 
-        if leave_training:
-            print("Learning rate decreased too much! Stopping training...")
-            break
+
 
     return print_val_loss_avg, directory, train_history, val_history, [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
 
