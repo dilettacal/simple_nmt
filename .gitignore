@@ -9,6 +9,7 @@
 !requirements.txt
 !simple_dataset_praesi.txt
 seminararbeit/*
+images_source.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
