@@ -1,0 +1,3 @@
+seq2seq.png: https://towardsdatascience.com/nlp-sequence-to-sequence-networks-part-2-seq2seq-model-encoderdecoder-model-6c22e29fd7e1
+RNN-unrolled.png: https://colah.github.io/posts/2015-08-Understanding-LSTMs/
+LSTM3-chain.png: https://colah.github.io/posts/2015-08-Understanding-LSTMs/
