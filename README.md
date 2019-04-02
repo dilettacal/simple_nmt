@@ -102,6 +102,12 @@ Beispielanwendung:
 
 Um den Übersetzer zu verlassen, `q` eingeben.
 
+Beispiel-Aufruf:
+```bash
+python translate.py --path experiment/checkpoints/dry_run_simple_nmt_model_full_158544_teacher_1.0_train_voc_adam_lr-0.001-1/deu.txt/2-2_512-512_100
+
+```
+
 ## 3. Exemplarische Ergebnisse
 
 * Bestes Ergebnis erzielt mit `dry_run.py`*:
