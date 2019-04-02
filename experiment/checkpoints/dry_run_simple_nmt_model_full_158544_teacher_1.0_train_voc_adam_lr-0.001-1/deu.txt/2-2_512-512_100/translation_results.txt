@@ -1,0 +1,71 @@
+Experiment: experiment/checkpoints/dry_run_simple_nmt_model_full_158544_teacher_1.0_train_voc_adam_lr-0.001-1/deu.txt/2-2_512-512_100
+hi > hallo
+hello > hallo
+fire > feuer feuer
+i see > ich sehe
+how are you > wie gehts dir
+are you fine > geht es dir gut
+i am fine thanks > ich bin es gut danke
+what do you do > was tust du
+i am reading a book > ich lese gerade ein buch
+i like reading books > ich lese gerne buecher
+look at the sky > schau den himmel
+she loves him > sie liebt ihn
+she likes jogging > sie mag joggen
+he likes golf > er mag golf
+he plays guitar > er spielt gitarre
+i am in the garden > ich bin im garten
+i am in the kitchen > ich bin in der kueche
+you are shy > du bist schuechtern
+you are very smart > ihr seid sehr klug
+i like listening to music > ich hoere gerne musik
+i like music > ich mag musik
+she is rich > sie ist reich
+she is a rich woman > sie ist eine sehr frau
+she is an actress > sie ist schauspielerin
+he is an engineer > er ist ingenieur
+he is a football player > er ist ein tennisspieler
+he plays football > er spielt fussball
+you live in the city > sie wohnen in der stadt
+how old are you > wie alt sind sie
+i love being with people > ich liebe es mit einer leuten zu sein
+i am outside > ich bin nach draussen
+i live abroad > ich wohne im ausland
+i love you > ich liebe dich
+do you love me > liebst du mich
+she likes you > sie mag dich
+she likes cats > sie mag katzen katzen
+she is at work > sie ist auf der arbeit
+she is a teacher > sie ist lehrer
+he works at school > er arbeitet in der schule
+he is an engineer > er ist ingenieur
+he loves pizza > er liebt pizza
+i love pizza > ich liebe pizza
+we go to the restaurant > wir gehen ins restaurant
+we live in turkey > wir leben in der tuerkei
+we are on holiday > wir sind am urlaub
+the are happy > die sind gluecklich
+i didnt expect you to turn up here > ich habe vor mir hier du hier
+i didnt promise anything like that > ich habe so etwas so etwas zu
+i do not like math > ich mag mathe nicht
+he stayed awake > er blieb wach
+she sells coffee > sie verkauft kaffee kaffee
+they sent me that > sie haben mir das geschickt
+i should relax > ich sollte mich anziehen
+you seemed tired > du scheinst muede zu sein
+the woman is reading > die frau liest gerade
+the man is cooking > der mann kocht kochen
+the wind calmed down > der wind hat sich beruhigt
+the story is too long > die geschichte ist zu lange
+the sun is coming up > die sonne geht auf
+the taxi has arrived > das taxi ist da
+the train has arrived > der zug ist da
+the train has left > der zug ist abgefahren
+the train has just left > der zug ist gerade abgefahren
+the train has already left > der zug ist schon abgefahren
+their cakes are very good > ihre kuchen sind sehr gut
+their stories are amazing > ihre bleistifte sind unglaublich
+their poems are good > ihre gedichte sind gut
+good poems are funny > gute gute sind noch
+there are exceptions > es gibt ausnahmen
+there is no solution > es gibt keine loesung
