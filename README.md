@@ -76,6 +76,9 @@ Weitere Argumente können über: `python run_experiment.py --help` angesehen wer
 Jedes ausgeführte Experiment wird in der Datei `log_history.txt` geloggt. Das letzte Experiment wird in der Datei`last_experiment.txt` zusätzlich hinzugefügt.
 Diese letzte Datei *muss nicht gelöscht* werden, da der Übersetzer auf die darin enthaltenen Informationen zugreifen muss, um ausgeführt zu werden.
 
+**CUDA-Hinweis**: 
+Die Verwendung der GPU wird global im System verwaltet (`global_settings.py`). Zu Experimentenbeginn wird geprüft, ob CUDA verfügbar ist. Wenn das der Fall ist, dann wird der Device auf **"cuda"** automatisch gesetzt. 
+
 
 ### 2.4 Übersetzer benutzen
 
