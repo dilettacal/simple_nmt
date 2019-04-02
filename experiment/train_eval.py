@@ -6,7 +6,7 @@ import torch
 from utils.prepro import preprocess_sentence
 from utils.tokenize import SOS_token, batch2TrainData, indexesFromSentence, EOS, PAD, EOS_token
 from utils.utils import maskNLLLoss
-from global_settings import NUM_BAD_VALID_LOSS, LR_DECAY, MIN_LR, MAX_LR
+from global_settings import NUM_BAD_VALID_LOSS, LR_DECAY, MIN_LR
 import numpy as np
 
 ## Truncated backpropagation
@@ -196,12 +196,12 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
 
         return sum(print_losses) / n_totals
 
-def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, decoder,
-               encoder_optimizer, decoder_optimizer,
-               encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
+def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, decoder, encoder_optimizer,
+               decoder_optimizer, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every,
                save_every, clip, corpus_name, val_iterations, tbptt=True):
     """
     This method defines the main training procedure
+    :param device:
     :param model_name: model name
     :param src_voc: source vocabulary
     :param tar_voc: target vocabulary
@@ -270,12 +270,10 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
     encoder_avg_grads, decoder_avg_grads = [], []
     encoder_layers, decoder_layers = [], []
-    leave_training = False
+    min_lr_reached = False
 
     for iteration in range(start_iteration, n_iteration):
 
-        if leave_training:
-            break
         ### Training batch
         training_batch = training_batches[iteration - 1]
         train_inp_var, train_src_len, train_trg_var, train_mask, train_max_len, train_trg_len = training_batch
@@ -355,19 +353,19 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                     n_bad_loss +=1
                 ### Here perform learning rate decay conditioned on the number of bad val losses or on difference between train and val loss
                 delta_condition = (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA)
-
-                if n_bad_loss == NUM_BAD_VALID_LOSS or delta_condition:
-                    print("Bad loss", n_bad_loss)
-                    print("Best validation loss", best_validation_loss)
-                    new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
-                    n_bad_loss = 0
-                    lr_changes +=1
+                new_lr_enc = 0
+                new_lr_dec = 0
+                if min_lr_reached == False:
+                    if n_bad_loss == NUM_BAD_VALID_LOSS or delta_condition:
+                        print("Bad loss", n_bad_loss)
+                        print("Best validation loss", best_validation_loss)
+                        new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
+                        n_bad_loss = 0
+                        lr_changes +=1
 
                     ### Learning rate too much decreased, leave training
                     if new_lr_enc < MIN_LR or new_lr_dec < MIN_LR:
-                        leave_training = True
-                        print("Learning rate decreased too much! Stopping training...")
-                        break
+                        min_lr_reached = True
 
         if not val_pairs and iteration % save_every == 0:
             torch.save({

@@ -89,23 +89,18 @@ if __name__ == '__main__':
                              "If 'false', 'detach()' is not applied.\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
     ### Dropout ###
-    parser.add_argument('--dropout', type=float, default=0.0,
+    parser.add_argument('--dropout', type=float, default=0.1,
                         help='dropout applied to layers (0.0 = no dropout). Values range allowed: [0.0 - 1.0]')
 
     ### Seed ###
     parser.add_argument('--seed', type=int, default=1111,
                         help='random seed')
 
-    ### Run program on cuda ###
-    parser.add_argument('--cuda', type=str2bool, default="true", help="use CUDA.\n"
-                                                                      "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
-
     ### Logging interval ###
     parser.add_argument('--log_interval', type=int, default=100, help='report interval')
 
     parser.add_argument('--max_len', type=int, default=0, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
 
-    parser.add_argument('--optim', type=str, default='adamax', help="Training optimizer. Possible values: 'adamax', 'adam', 'adagrad', 'sgd'")
 
     #### Start #####
 
@@ -118,11 +113,6 @@ if __name__ == '__main__':
 
     # Set the random seed manually for reproducibility.
     torch.manual_seed(args.seed)
-    if torch.cuda.is_available():
-        if not args.cuda:
-            print("WARNING: You have a CUDA device, so you should probably run with --cuda")
-
-    device = torch.device("cuda" if args.cuda else "cpu")
 
     ###### Starting the program #####
 
@@ -219,13 +209,10 @@ if __name__ == '__main__':
     print_every = args.log_interval
 
     cell_type = "lstm" ### default, as GRU implementation still needs changes
-    if cell_type not in ["lstm", "gru"]:
-        cell_type = "lstm"
-        print("{} cell type not allowed. Cell type has been set to default value 'lstm'".format(args.cell))
 
     save_every = 500
 
-    optimizer = args.optim.lower()
+    optimizer = "adam"
     if optimizer not in ['adam', 'adamax', 'adagrad', 'sgd']:
         optimizer = 'adamax'
         print("Provided optimizer is not supported. Standard optimizer is used.")
@@ -276,8 +263,8 @@ if __name__ == '__main__':
     print("Starting Training!")
     start_time = datetime.now()
     val_loss, directory, train_history, val_statistics, _, _ = \
-        trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer, decoder_optimizer,
-                   encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
+        trainIters(model_name, input_lang, output_lang, train_set, val_set, encoder, decoder, encoder_optimizer,
+                   decoder_optimizer, encoder_n_layers, decoder_n_layers, SAVE_DIR, n_iteration, batch_size,
                    print_every, save_every, clip, FILENAME, val_iteration, tbptt=tbptt)
 
     end_time = datetime.now()
