@@ -8,6 +8,7 @@
 !translation_examples_for_testing.txt
 !requirements.txt
 !simple_dataset_praesi.txt
+seminararbeit/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

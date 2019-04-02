@@ -74,13 +74,13 @@ class DecoderLSTM(nn.Module):
             raise AttributeError("Cell type not supported!")
 
         self.out = nn.Linear(hidden_size, output_size)
-        # self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, input_step, last_hidden):
         #input_step = [seq_len, batch_size]
         #last_hidden = [seq_len, batch_size, hidden_size] #1, 64, 256
         #embedded = [seq_len, batch_size, embedding_size]
         embedded = self.embedding(input_step)
+        ### https://github.com/pytorch/tutorials/blob/master/intermediate_source/seq2seq_translation_tutorial.py#L382
         embedded = F.relu(embedded)
 
         # Forward through unidirectional GRU
