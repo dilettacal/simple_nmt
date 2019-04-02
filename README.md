@@ -118,7 +118,7 @@ python run_experiment.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teac
 Beispielübersetzungen :
 
 | Source        | Target           
-| ------------- |:-------------:
+| ------------- |-------------
 | the woman is reading     | die frau liest gerade 
 | the man is cooking      | der mann kocht kochen      
 | the story is too long | die geschichte ist zu lange
