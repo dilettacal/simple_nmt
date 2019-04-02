@@ -58,13 +58,15 @@ lternativ kann die zip-Datei aus dem Link manuell heruntergeladen werden. Die tx
 ### 2.2 Packages
 In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden.
 
-### 2.3 Experiment ausführen (`run_experiment.py`)
-#### Ausführun mit `run_experiment.py`
+### 2.3 Experiment ausführen
+
+#### Ausführung mit `run_experiment.py`
 
 Das ist die Variante mit Training und Validierungsphasen.
 Um Experimente auszuführen soll das Skript `run_experiment.py` ausgeführt werden. Das Programm ist von der Konsole bedienbar. 
 
 ### Ausführung mit `dry_run.py`
+
 Das ist die schnelle Variante mit Training und Valuierung über die Konsole (`translate.py`).
 
 Folgende Argumente können verwendet werden:
