@@ -55,7 +55,10 @@ Dieser Datensatz kann aus der Webseite heruntergeladen werden. Dafür gibt es im
 
 lternativ kann die zip-Datei aus dem Link manuell heruntergeladen werden. Die txt-Datei soll manuell in den Ordner `data` geschoben werden. Sollte die Dateiname nicht "deu.txt" heißen, so muss sie entsprechend umbenannt werden.
 
-### 2.2 Experiment ausführen
+### 2.2 Packages
+In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden.
+
+### 2.3 Experiment ausführen
 
 Um Experimente auszuführen soll das Skript `run_experiment.py` ausgeführt werden. Das Programm ist von der Konsole bedienbar. Folgende Argumente können verwendet werden:
 1. `--limit`, z.B. --limit 50000: Limitiert die Exemplare auf 50000.
@@ -74,7 +77,7 @@ Jedes ausgeführte Experiment wird in der Datei `log_history.txt` geloggt. Das l
 Diese letzte Datei *muss nicht gelöscht* werden, da der Übersetzer auf die darin enthaltenen Informationen zugreifen muss, um ausgeführt zu werden.
 
 
-### 2.3 Übersetzer benutzen
+### 2.4 Übersetzer benutzen
 
 Während der Experimentausführung werden Checkpoints in `experiment/checkpoints/<model_name>/<file_name>/<model_config>/checkpoint.tar` gespeichert.
 Um den Übersetzer zu starten, soll das Skript `translate.py` ausgeführt werden.
