@@ -162,7 +162,7 @@ if __name__ == '__main__':
     src_sents, trg_sents = [], []
 
 
-    limit = 55000
+  #  limit = None
 
     if limit:
         pairs = pairs[:limit]
