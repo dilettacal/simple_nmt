@@ -270,7 +270,7 @@ if __name__ == '__main__':
 
     #Log file name
     try:
-        with open(os.path.join(start_root, EXPERIMENT_DIR, "dry_run.txt"), encoding="utf-8", mode="w") as f:
+        with open(os.path.join(start_root, EXPERIMENT_DIR, LOG_FILE), encoding="utf-8", mode="w") as f:
             #Logging to last_experiment.txt
             f.write(str(directory))
         with open(os.path.join(start_root, EXPERIMENT_DIR, "log_history.txt"), encoding="utf-8", mode="a") as hf:
