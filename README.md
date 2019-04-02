@@ -34,6 +34,7 @@ Kurze Projektbeschreibung:
 │   └── Presentation.ipynb  
 ├── Pipfile         
 ├── Pipfile.lock
+├── requirements.txt
 ├── README.md
 ├── run_experiment.py       # main execution file
 ├── dry_run.py              # First experiments with standard settings

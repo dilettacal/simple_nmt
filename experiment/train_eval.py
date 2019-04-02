@@ -331,7 +331,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                     best_validation_loss = print_val_loss_avg
                     print("Validation loss improved to {:.4f}".format(best_validation_loss))
 
-                    if n_bad_loss != 0: n_bad_loss -=1
+                    if n_bad_loss != 0: n_bad_loss = 0
 
                     torch.save({
                         'iteration': iteration,
@@ -353,9 +353,10 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
                     n_bad_loss +=1
                 ### Here perform learning rate decay conditioned on the number of bad val losses or on difference between train and val loss
                 delta_condition = (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA)
-                new_lr_enc = 0
-                new_lr_dec = 0
                 if min_lr_reached == False:
+                    #some start value
+                    new_lr_enc = 20
+                    new_lr_dec = 20
                     if n_bad_loss == NUM_BAD_VALID_LOSS or delta_condition:
                         print("Bad loss", n_bad_loss)
                         print("Best validation loss", best_validation_loss)
