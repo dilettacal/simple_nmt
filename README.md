@@ -58,7 +58,7 @@ lternativ kann die zip-Datei aus dem Link manuell heruntergeladen werden. Die tx
 ### 2.2 Packages
 In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden.
 
-### 2.3 Experiment ausführen
+### 2.3 Experiment ausführen (`run_experiment.py`)
 
 Um Experimente auszuführen soll das Skript `run_experiment.py` ausgeführt werden. Das Programm ist von der Konsole bedienbar. Folgende Argumente können verwendet werden:
 1. `--limit`, z.B. --limit 50000: Limitiert die Exemplare auf 50000.
@@ -80,7 +80,7 @@ Diese letzte Datei *muss nicht gelöscht* werden, da der Übersetzer auf die dar
 Die Verwendung der GPU wird global im System verwaltet (`global_settings.py`). Zu Experimentenbeginn wird geprüft, ob CUDA verfügbar ist. Wenn das der Fall ist, dann wird der Device auf **"cuda"** automatisch gesetzt. 
 
 
-### 2.4 Übersetzer benutzen
+### 2.4 Übersetzer benutzen (`translate.py`)
 
 Während der Experimentausführung werden Checkpoints in `experiment/checkpoints/<model_name>/<file_name>/<model_config>/checkpoint.tar` gespeichert.
 Um den Übersetzer zu starten, soll das Skript `translate.py` ausgeführt werden.
@@ -92,6 +92,11 @@ Beispielanwendung:
 4. `python translate.py  --path path_to_experiment`: Greift auf das Experiment, das mit Path übergeben wird und startet das Experiment in der Konsole
 
 Um den Übersetzer zu verlassen, `q` eingeben.
+
+### 2.5 Anternative Ausführung mit dry_run.py
+Die Datei dry_run.py ist die alte leichtere Version des Programms. Wie im Chatbot-Tutorial wird das Training hier auf dem gesamten Datensatz ausgeführt. Das Programm lässt sich genauso wie `run_experiment.py` bedienen. 
+
+Für die Verwendung mit `translate.py` **muss** das Pfad `--path` zum Experiment angegeben werden.
 
 ## 3. Exemplarische Ergebnisse
 
