@@ -183,6 +183,7 @@ if __name__ == '__main__':
     print("Source vocabulary:", input_lang.num_words)
     print("Target vocabulary:", output_lang.num_words)
 
+    ### test should translate - TODO: Remove this
     test_batches = [batch2TrainData(input_lang, output_lang, [test_set[i]])
                         for i in range(len(test_set))]
 

@@ -55,9 +55,21 @@ Dieser Datensatz kann aus der Webseite heruntergeladen werden. Dafür gibt es im
 
 lternativ kann die zip-Datei aus dem Link manuell heruntergeladen werden. Die txt-Datei soll manuell in den Ordner `data` geschoben werden. Sollte die Dateiname nicht "deu.txt" heißen, so muss sie entsprechend umbenannt werden.
 
-### 2.2 Experiment ausführen
+### 2.2 Packages
+In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden.
 
-Um Experimente auszuführen soll das Skript `run_experiment.py` ausgeführt werden. Das Programm ist von der Konsole bedienbar. Folgende Argumente können verwendet werden:
+### 2.3 Experiment ausführen
+
+#### Ausführung mit `run_experiment.py`
+
+Das ist die Variante mit Training und Validierungsphasen.
+Um Experimente auszuführen soll das Skript `run_experiment.py` ausgeführt werden. Das Programm ist von der Konsole bedienbar. 
+
+### Ausführung mit `dry_run.py`
+
+Das ist die schnelle Variante mit Training und Valuierung über die Konsole (`translate.py`).
+
+Folgende Argumente können verwendet werden:
 1. `--limit`, z.B. --limit 50000: Limitiert die Exemplare auf 50000.
 2. `--emb`, standardmäßig: 256: Die Anzahl der Features im Embedding-Layer
 3. `--hid`, standardmäßig: 256: Die Anzahl der Hidden-Neurone im LSTM-Layer
@@ -73,8 +85,11 @@ Weitere Argumente können über: `python run_experiment.py --help` angesehen wer
 Jedes ausgeführte Experiment wird in der Datei `log_history.txt` geloggt. Das letzte Experiment wird in der Datei`last_experiment.txt` zusätzlich hinzugefügt.
 Diese letzte Datei *muss nicht gelöscht* werden, da der Übersetzer auf die darin enthaltenen Informationen zugreifen muss, um ausgeführt zu werden.
 
+**CUDA-Hinweis**: 
+Die Verwendung der GPU wird global im System verwaltet (`global_settings.py`). Zu Experimentenbeginn wird geprüft, ob CUDA verfügbar ist. Wenn das der Fall ist, dann wird der Device auf **"cuda"** automatisch gesetzt. 
 
-### 2.3 Übersetzer benutzen
+
+### 2.4 Übersetzer benutzen (`translate.py`)
 
 Während der Experimentausführung werden Checkpoints in `experiment/checkpoints/<model_name>/<file_name>/<model_config>/checkpoint.tar` gespeichert.
 Um den Übersetzer zu starten, soll das Skript `translate.py` ausgeführt werden.
@@ -89,28 +104,29 @@ Um den Übersetzer zu verlassen, `q` eingeben.
 
 ## 3. Exemplarische Ergebnisse
 
-Beste Ergebnisse mit folgenden Einstellungen:
+* Bestes Ergebnis erzielt mit `dry_run.py`*:
 
-- Datensatz reduziert auf: Alle Sätze mit maximaler Länge 10
-- Embedding size: 512
-- Hidden size: 512
-- Encoder: 2 layers
-- Decoder: 2 layers
-- Batch size: 64
-- Iterationen: 40000
-- Teacher Forcing Ratio: 1.0
-- Learning rate: 0.003 mit Anpassung
+```bash
+python dry_run.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 15000 --batch_size 100 --lr 0.001 --dec_lr 1 --nlayers 2 
+```
 
+* Gutes Ergebnis erzielt mit `run_experiment.py`* :
+```bash
+python run_experiment.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 30000 --batch_size 100 --lr 0.003 --dec_lr 1 --nlayers 2
+```
 
-Plot der Trainings- und Validations-Durchschnittsloss durch die Iterationen:
-
-Beispielübersetzungen (vom Terminal):
+Beispielübersetzungen :
 
 | Source        | Target           
-| ------------- |:-------------:
-| col 3 is      | right-aligned 
-| col 2 is      | centered      
-| zebra stripes | are neat      
+| ------------- |-------------
+| the woman is reading     | die frau liest gerade 
+| the man is cooking      | der mann kocht kochen      
+| the story is too long | die geschichte ist zu lange
+| the train has arrived | der zug ist da
+| the train has left | der zug ist abgefahren
+| the train has already left | der zug ist schon abgefahren
+| their poems are good | ihre gedichte sind gut
+| i think you should stop screaming | ich finde du sollten aufhoeren zu schreien
 
 ## 5. Quellen
 
