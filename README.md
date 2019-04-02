@@ -127,6 +127,8 @@ Beispielübersetzungen :
 | the train has already left | der zug ist schon abgefahren
 | their poems are good | ihre gedichte sind gut
 | i think you should stop screaming | ich finde du sollten aufhoeren zu schreien
+| I think you should stop writing your essay | ich denke du solltest deinen aufsatz zu stoeren
+
 
 ## 5. Quellen
 
