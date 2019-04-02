@@ -34,7 +34,6 @@ Kurze Projektbeschreibung:
 │   └── Presentation.ipynb  
 ├── Pipfile         
 ├── Pipfile.lock
-├── requirements.txt
 ├── README.md
 ├── run_experiment.py       # main execution file
 ├── dry_run.py              # First experiments with standard settings
@@ -60,8 +59,15 @@ lternativ kann die zip-Datei aus dem Link manuell heruntergeladen werden. Die tx
 In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden.
 
 ### 2.3 Experiment ausführen (`run_experiment.py`)
+#### Ausführun mit `run_experiment.py`
 
-Um Experimente auszuführen soll das Skript `run_experiment.py` ausgeführt werden. Das Programm ist von der Konsole bedienbar. Folgende Argumente können verwendet werden:
+Das ist die Variante mit Training und Validierungsphasen.
+Um Experimente auszuführen soll das Skript `run_experiment.py` ausgeführt werden. Das Programm ist von der Konsole bedienbar. 
+
+### Ausführung mit `dry_run.py`
+Das ist die schnelle Variante mit Training und Valuierung über die Konsole (`translate.py`).
+
+Folgende Argumente können verwendet werden:
 1. `--limit`, z.B. --limit 50000: Limitiert die Exemplare auf 50000.
 2. `--emb`, standardmäßig: 256: Die Anzahl der Features im Embedding-Layer
 3. `--hid`, standardmäßig: 256: Die Anzahl der Hidden-Neurone im LSTM-Layer
@@ -94,35 +100,31 @@ Beispielanwendung:
 
 Um den Übersetzer zu verlassen, `q` eingeben.
 
-### 2.5 Anternative Ausführung mit dry_run.py
-Die Datei dry_run.py ist die alte leichtere Version des Programms. Wie im Chatbot-Tutorial wird das Training hier auf dem gesamten Datensatz ausgeführt. Das Programm lässt sich genauso wie `run_experiment.py` bedienen. 
-
-Für die Verwendung mit `translate.py` **muss** das Pfad `--path` zum Experiment angegeben werden.
-
 ## 3. Exemplarische Ergebnisse
 
-Beste Ergebnisse mit folgenden Einstellungen:
+* Bestes Ergebnis erzielt mit `dry_run.py`*:
 
-- Datensatz reduziert auf: Alle Sätze mit maximaler Länge 10
-- Embedding size: 512
-- Hidden size: 512
-- Encoder: 2 layers
-- Decoder: 2 layers
-- Batch size: 64
-- Iterationen: 40000
-- Teacher Forcing Ratio: 1.0
-- Learning rate: 0.003 mit Anpassung
+```bash
+python dry_run.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 15000 --batch_size 100 --lr 0.001 --dec_lr 1 --nlayers 2 
+```
 
+* Gutes Ergebnis erzielt mit `run_experiment.py`* :
+```bash
+python run_experiment.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 30000 --batch_size 100 --lr 0.003 --dec_lr 1 --nlayers 2
+```
 
-Plot der Trainings- und Validations-Durchschnittsloss durch die Iterationen:
-
-Beispielübersetzungen (vom Terminal):
+Beispielübersetzungen :
 
 | Source        | Target           
 | ------------- |:-------------:
-| col 3 is      | right-aligned 
-| col 2 is      | centered      
-| zebra stripes | are neat      
+| the woman is reading     | die frau liest gerade 
+| the man is cooking      | der mann kocht kochen      
+| the story is too long | die geschichte ist zu lange
+| the train has arrived | der zug ist da
+| the train has left | der zug ist abgefahren
+| the train has already left | der zug ist schon abgefahren
+| their poems are good | ihre gedichte sind gut
+| i think you should stop screaming | ich finde du sollten aufhoeren zu schreien
 
 ## 5. Quellen
 
