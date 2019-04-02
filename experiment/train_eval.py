@@ -21,6 +21,7 @@ def detach_states(states):
 ### Manage optimizers: https://pytorch.org/docs/master/optim.html
 
 def adapt_lr(enc_optim, dec_optim, decay_value):
+    #https://fehiepsi.github.io/blog/grapheme-to-phoneme/
     for param_group in enc_optim.param_groups:
         param_group['lr'] *= decay_value
     new_enc_lr = enc_optim.param_groups[0]['lr']
@@ -366,6 +367,7 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
 
                     ### Learning rate too much decreased, leave training
                     if new_lr_enc < MIN_LR or new_lr_dec < MIN_LR:
+
                         min_lr_reached = True
 
         if not val_pairs and iteration % save_every == 0:

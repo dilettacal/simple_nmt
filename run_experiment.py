@@ -214,10 +214,6 @@ if __name__ == '__main__':
     save_every = 500
 
     optimizer = "adam"
-    if optimizer not in ['adam', 'adamax', 'adagrad', 'sgd']:
-        optimizer = 'adamax'
-        print("Provided optimizer is not supported. Standard optimizer is used.")
-
     model_name = ''
     model_name += 'simple_nmt_model' + str(limit) if limit else 'simple_nmt_model_full_' + str(len(pairs))
     model_name += "_teacher_{}".format(str(teacher_forcing_ratio)) if teacher_forcing_ratio > 0.0 else "_no_teacher"
@@ -245,18 +241,8 @@ if __name__ == '__main__':
 
     # Initialize optimizers
     print('Building optimizers ...')
-    encoder_optimizer = optim.Adamax(encoder.parameters(), lr=learning_rate)
-    decoder_optimizer = optim.Adamax(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
-
-    if optimizer == 'adam':
-        encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
-        decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
-    elif optimizer == 'sgd':
-        encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
-        decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
-    elif optimizer == 'adagrad':
-        encoder_optimizer = optim.Adagrad(encoder.parameters(), lr=learning_rate)
-        decoder_optimizer = optim.Adagrad(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
+    encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
+    decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
 
     print(encoder_optimizer, decoder_optimizer)
 
