@@ -237,8 +237,9 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
     training_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(train_pairs) for _ in range(batch_size)])
                         for _ in range(n_iteration)]
 
-    val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(batch_size)]) for
-                   _ in range(n_iteration)]
+    if val_pairs:
+        val_batches = [batch2TrainData(src_voc, tar_voc, [random.choice(val_pairs) for _ in range(batch_size)]) for
+                       _ in range(n_iteration)]
 
 
     #### Directory setup
@@ -288,19 +289,20 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         #### store results
         train_history.append(train_loss)
 
-        ### Validation
-        val_batch = val_batches[iteration-1]
-        val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len = val_batch
+        if val_pairs:
+            ### Validation
+            val_batch = val_batches[iteration-1]
+            val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len = val_batch
 
-        encoder.eval()
-        decoder.eval()
+            encoder.eval()
+            decoder.eval()
 
-        val_loss = eval(val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len, encoder, decoder,
-                        batch_size)
+            val_loss = eval(val_inp_var, val_src_len, val_trg_var, val_mask, val_max_len, val_trg_len, encoder, decoder,
+                            batch_size)
 
-        val_print_loss += val_loss
+            val_print_loss += val_loss
 
-        val_history.append(val_loss)
+            val_history.append(val_loss)
 
 
         layers = encoder.n_layers
@@ -311,57 +313,78 @@ def trainIters(model_name, src_voc, tar_voc, train_pairs, val_pairs, encoder, de
         # Logging and validation check
         if iteration % print_every == 0 or iteration == n_iteration-1:
             print_loss_avg = train_print_loss / print_every
-            print_val_loss_avg = val_print_loss / print_every
-            print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
-                  .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
-            print("Absolute difference validation vs. training loss:", np.abs(print_val_loss_avg - print_loss_avg))
+            if val_pairs:
+                print_val_loss_avg = val_print_loss / print_every
+                print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}; Average val loss: {:.4f}"
+                      .format(iteration, iteration / n_iteration * 100, print_loss_avg, print_val_loss_avg))
+                print("Absolute difference validation vs. training loss:", np.abs(print_val_loss_avg - print_loss_avg))
+            else:
+                print("Iteration: {}; Percent complete: {:.1f}%; Average train loss: {:.4f}"
+                      .format(iteration, iteration / n_iteration * 100, print_loss_avg))
 
             ### reset counters
             train_print_loss = 0
             val_print_loss = 0
 
+            if val_pairs:
 
-            if print_val_loss_avg < best_validation_loss:
-                ### Update validation loss and save the model
-                best_validation_loss = print_val_loss_avg
-                print("Validation loss improved to {:.4f}".format(best_validation_loss))
+                if print_val_loss_avg < best_validation_loss:
+                    ### Update validation loss and save the model
+                    best_validation_loss = print_val_loss_avg
+                    print("Validation loss improved to {:.4f}".format(best_validation_loss))
 
-                if n_bad_loss != 0: n_bad_loss -=1
+                    if n_bad_loss != 0: n_bad_loss -=1
 
-                torch.save({
-                    'iteration': iteration,
-                    'en': encoder.state_dict(),
-                    'de': decoder.state_dict(),
-                    'en_opt': encoder_optimizer.state_dict(),
-                    'de_opt': decoder_optimizer.state_dict(),
-                    'loss': val_loss,
-                    'src_dict': src_voc.__dict__,
-                    'tar_dict': tar_voc.__dict__,
-                    'src_embedding': encoder.embedding.state_dict(),
-                    'trg_embedding': decoder.embedding.state_dict(),
-                    'n_layers': layers,  # Layer numbers the same for both components
-                    'hidden_size': hidden_size
+                    torch.save({
+                        'iteration': iteration,
+                        'en': encoder.state_dict(),
+                        'de': decoder.state_dict(),
+                        'en_opt': encoder_optimizer.state_dict(),
+                        'de_opt': decoder_optimizer.state_dict(),
+                        'loss': val_loss,
+                        'src_dict': src_voc.__dict__,
+                        'tar_dict': tar_voc.__dict__,
+                        'src_embedding': encoder.embedding.state_dict(),
+                        'trg_embedding': decoder.embedding.state_dict(),
+                        'n_layers': layers,  # Layer numbers the same for both components
+                        'hidden_size': hidden_size
 
-                }, os.path.join(directory, '{}.tar'.format('checkpoint')))
-            else:
-                ### increase the number of bad validation loss
-                n_bad_loss +=1
-            ### Here perform learning rate decay conditioned on the number of bad val losses or on difference between train and val loss
-            delta_condition = (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA)
+                    }, os.path.join(directory, '{}.tar'.format('checkpoint')))
+                else:
+                    ### increase the number of bad validation loss
+                    n_bad_loss +=1
+                ### Here perform learning rate decay conditioned on the number of bad val losses or on difference between train and val loss
+                delta_condition = (np.abs(print_val_loss_avg - print_loss_avg) > VAL_TRAIN_DELTA)
 
-            if n_bad_loss == NUM_BAD_VALID_LOSS or delta_condition:
-                print("Bad loss", n_bad_loss)
-                print("Best validation loss", best_validation_loss)
-                new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
-                n_bad_loss = 0
-                lr_changes +=1
+                if n_bad_loss == NUM_BAD_VALID_LOSS or delta_condition:
+                    print("Bad loss", n_bad_loss)
+                    print("Best validation loss", best_validation_loss)
+                    new_lr_enc, new_lr_dec = adapt_lr(encoder_optimizer, decoder_optimizer, LR_DECAY)
+                    n_bad_loss = 0
+                    lr_changes +=1
 
-                ### Learning rate too much decreased, leave training
-                if new_lr_enc < MIN_LR or new_lr_dec < MIN_LR:
-                    leave_training = True
-                    print("Learning rate decreased too much! Stopping training...")
-                    break
+                    ### Learning rate too much decreased, leave training
+                    if new_lr_enc < MIN_LR or new_lr_dec < MIN_LR:
+                        leave_training = True
+                        print("Learning rate decreased too much! Stopping training...")
+                        break
 
+        if not val_pairs and iteration % save_every == 0:
+            torch.save({
+                'iteration': iteration,
+                'en': encoder.state_dict(),
+                'de': decoder.state_dict(),
+                'en_opt': encoder_optimizer.state_dict(),
+                'de_opt': decoder_optimizer.state_dict(),
+                'loss': val_loss,
+                'src_dict': src_voc.__dict__,
+                'tar_dict': tar_voc.__dict__,
+                'src_embedding': encoder.embedding.state_dict(),
+                'trg_embedding': decoder.embedding.state_dict(),
+                'n_layers': layers,  # Layer numbers the same for both components
+                'hidden_size': hidden_size
+
+            }, os.path.join(directory, '{}.tar'.format('checkpoint')))
 
 
     return print_val_loss_avg, directory, train_history, val_history, [encoder_avg_grads, encoder_layers], [decoder_avg_grads, decoder_layers]
@@ -530,13 +553,14 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
     plt.plot(train_history, color='b')
     #x1 = np.arange(0, len(train_history), log_interval)
     #x1 = np.linspace(0, n_iterations, val_plot)
-    plt.plot(val_history, color='r')
+    if val_history:
+        plt.plot(val_history, color='r')
     plt.title('model train vs validation loss')
     plt.ylabel('loss')
     plt.xlabel('iteration - lr= {}'.format(lr))
     plt.legend(['train', 'validation'], loc='upper right')
     if live_show: plt.show()
-    file = "train_loss.png"
+    file = "train_loss4000.png"
     path_to_file = os.path.join(directory, file)
     plt.savefig(path_to_file)
     plt.close()
