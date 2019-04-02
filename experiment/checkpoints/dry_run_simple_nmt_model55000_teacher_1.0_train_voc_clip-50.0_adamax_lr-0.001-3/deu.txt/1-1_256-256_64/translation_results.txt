@@ -60,7 +60,7 @@ the story is too long > es steht zu lange
 the sun is coming up > die sonne geht auf
 the taxi has arrived > das taxi ist da
 the train has arrived > der zug ist aufgegangen
-the train has left > der zug hat ab
+the train has left > der zug hat abgefahren
 the train has just left > der zug ist gerade gegangen
 the train has already left > die zug ist schon gegangen
 their cakes are very good > ihre kuchen sind sehr gut
