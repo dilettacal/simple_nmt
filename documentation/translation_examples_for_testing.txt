@@ -1,5 +1,7 @@
 Hi
 Hello!
+Fire!
+I see.
 How are you
 Are you fine
 I am fine, thanks
@@ -42,59 +44,27 @@ We go to the restaurant
 We live in Turkey
 We are on holiday
 The are happy
-They are rich people
-They are poor men
-I think about you
-I think you are great
-She thinks she is rich
-You are welcome
-Welcome to my place
-It is too late
-I will take the train
-I will drive the car
-I drive the car everyday
-I am driving my car
-I love playing games
-I love playing football
-I am a good student
-I love programming
-Just have a little break
-Tell me a story
-Tell me a joke
-I like writing poems
-I write poems
-I write books
-I love stories
-I am happy
-You are happy
-It is late, go to bed
-I want to sleep
-I really love pizza
-I like horror films
-I love to go to the sea
-Next month we will travel abroad
-Last year we went abroad
-He thinks, that she is beautiful
-She studies at the university
-She missed the train and took a taxi
-They went to the doctor
-They work in the hospital. The hospital is in the city.
-The cat is on the corner
-The dog is sleeping on the bed
-Your father is a great teacher
-Your mother is very tall
-I am very sad that you leave
-You are leaving
-You left the building
-I think I will go
-I am leaving
-I think you should stop writing this essay
-This task is funny but also very hard
-The quick brown fox ran in the garden
-Next time I want to speak with you
-Speak with me
-Turn on the light
-Please, turn on the light
-Turn off the light
-Get up and take your coffee
-Tell me a joke
+I didn't expect you to turn up here.
+I didn't promise anything like that.
+I do not like math.
+He stayed awake.
+She sells coffee.
+They sent me that.
+I should relax.
+You seemed tired.
+The woman is reading.
+The man is cooking.
+The wind calmed down.
+The story is too long.
+The sun is coming up.
+The taxi has arrived.
+The train has arrived.
+The train has left.
+The train has just left.
+The train has already left.
+Their cakes are very good.
+Their stories are amazing.
+Their poems are good.
+Good poems are funny.
+There are exceptions.
+There is no solution.

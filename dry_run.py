@@ -84,7 +84,7 @@ if __name__ == '__main__':
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
 
     ### Truncated Backprop through time ###
-    parser.add_argument('--tbptt', type=str2bool, default="True",
+    parser.add_argument('--tbptt', type=str2bool, default="False",
                         help="Set how to perform truncation in backpropagation. If 'true', every time 'detach()' is applied on the hidden states. "
                              "If 'false', 'detach()' is not applied.\n"
                              "Possible inputs: 'yes', 'true', 't', 'y', '1' OR 'no', 'false', 'f', 'n', '0'")
@@ -103,9 +103,9 @@ if __name__ == '__main__':
     ### Logging interval ###
     parser.add_argument('--log_interval', type=int, default=100, help='report interval')
 
-    parser.add_argument('--max_len', type=int, default=0, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
+    parser.add_argument('--max_len', type=int, default=10, help='max sentence length in the dataset. Sentences longer than max_len are trimmed. Provide 0 for no trimming!')
 
-    parser.add_argument('--optim', type=str, default='adamax', help="Training optimizer. Possible values: 'adamax', 'adam', 'adagrad', 'sgd'")
+    parser.add_argument('--optim', type=str, default='adam', help="Training optimizer. Possible values: 'adamax', 'adam', 'adagrad', 'sgd'")
 
     #### Start #####
 
@@ -162,23 +162,17 @@ if __name__ == '__main__':
     src_sents, trg_sents = [], []
 
 
+    limit = 55000
+
     if limit:
         pairs = pairs[:limit]
         print("Limit set: %s" % str(limit))
 
-    #train_set, val_set, test_set = split_data(pairs, seed=args.seed)
-    #print("Data in train set:", len(train_set))
-    #print("Data in val set:", len(val_set))
-    #print("Data in test set:", len(test_set))
-
-    #print("Building vocabularies...")
-
-    #if voc_all:
-     #   train_data = train_set + val_set
-    #else:
-     #   train_data = train_set
-
     train_data = pairs
+
+
+    print("Total samples in the dataset:", len(train_data))
+
     src_sents = [item[0] for item in train_data]
     trg_sents = [item[1] for item in train_data]
 
@@ -193,12 +187,6 @@ if __name__ == '__main__':
 
     print("Source vocabulary:", input_lang.num_words)
     print("Target vocabulary:", output_lang.num_words)
-
-   # test_batches = [batch2TrainData(input_lang, output_lang, [test_set[i]])
-    #                    for i in range(len(test_set))]
-
-
-    #print("Test batches:", len(test_batches))
 
 
     # Configure models

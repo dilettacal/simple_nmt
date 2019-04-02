@@ -1,0 +1,100 @@
+Hi.	Hallo!
+Hi.	Grüß Gott!
+Run!	Lauf!
+Wow!	Potzdonner!
+Wow!	Donnerwetter!
+Fire!	Feuer!
+Help!	Hilfe!
+Help!	Zu Hülf!
+Stop!	Stopp!
+Wait!	Warte!
+Go on.	Mach weiter.
+Hello!	Hallo!
+I ran.	Ich rannte.
+I see.	Ich verstehe.
+I see.	Aha.
+I try.	Ich probiere es.
+I won!	Ich hab gewonnen!
+I won!	Ich habe gewonnen!
+Smile.	Lächeln!
+Cheers!	Zum Wohl!
+Freeze!	Keine Bewegung!
+Freeze!	Stehenbleiben!
+Got it?	Kapiert?
+Got it?	Verstanden?
+Got it?	Einverstanden?
+He ran.	Er rannte.
+He ran.	Er lief.
+Hop in.	Mach mit!
+Hug me.	Drück mich!
+Hug me.	Nimm mich in den Arm!
+Hug me.	Umarme mich!
+I fell.	Ich fiel.
+I fell.	Ich fiel hin.
+I fell.	Ich stürzte.
+I fell.	Ich bin hingefallen.
+I fell.	Ich bin gestürzt.
+I know.	Ich weiß.
+I lied.	Ich habe gelogen.
+I lost.	Ich habe verloren.
+I paid.	Ich habe bezahlt.
+I paid.	Ich zahlte.
+I swim.	Ich schwimme.
+I'm 19.	Ich bin 19 Jahre alt.
+I'm 19.	Ich bin 19.
+I'm OK.	Mir geht's gut.
+I'm OK.	Es geht mir gut.
+I'm up.	Ich bin wach.
+I'm up.	Ich bin auf.
+No way!	Unmöglich!
+No way!	Das kommt nicht in Frage!
+No way!	Das gibt’s doch nicht!
+No way!	Ausgeschlossen!
+No way!	In keinster Weise!
+Really?	Wirklich?
+Really?	Echt?
+Really?	Im Ernst?
+Thanks.	Danke!
+Try it.	Versuch’s!
+Why me?	Warum ich?
+Ask Tom.	Frag Tom!
+Ask Tom.	Fragen Sie Tom!
+Ask Tom.	Fragt Tom!
+Be cool.	Entspann dich!
+Be fair.	Sei nicht ungerecht!
+Be fair.	Sei fair!
+Be nice.	Sei nett!
+Be nice.	Seien Sie nett!
+Beat it.	Geh weg!
+Beat it.	Hau ab!
+Beat it.	Verschwinde!
+Beat it.	Verdufte!
+Beat it.	Mach dich fort!
+Beat it.	Zieh Leine!
+Beat it.	Mach dich vom Acker!
+Beat it.	Verzieh dich!
+Beat it.	Verkrümele dich!
+Beat it.	Troll dich!
+Beat it.	Zisch ab!
+Beat it.	Pack dich!
+Beat it.	Mach ’ne Fliege!
+Beat it.	Schwirr ab!
+Beat it.	Mach die Sause!
+Beat it.	Scher dich weg!
+Beat it.	Scher dich fort!
+Call me.	Ruf mich an.
+Come in.	Komm herein.
+Come in.	Herein!
+Come on!	Komm!
+Come on!	Kommt!
+Come on!	Mach schon!
+Come on!	Macht schon!
+Come on.	Komm schon!
+Get Tom.	Hol Tom.
+Get out!	Raus!
+Get out.	Geh raus.
+Get out.	Geht raus!
+Go away!	Geh weg!
+Go away!	Hau ab!
+Go away!	Verschwinde!
+Go away!	Verdufte!

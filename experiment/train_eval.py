@@ -560,7 +560,7 @@ def plot_training_results(modelname, train_history, val_history, save_dir, corpu
     plt.xlabel('iteration - lr= {}'.format(lr))
     plt.legend(['train', 'validation'], loc='upper right')
     if live_show: plt.show()
-    file = "train_loss4000.png"
+    file = "train_loss.png"
     path_to_file = os.path.join(directory, file)
     plt.savefig(path_to_file)
     plt.close()
