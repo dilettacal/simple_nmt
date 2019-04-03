@@ -21,17 +21,15 @@ Kurze Projektbeschreibung:
 ├── data
 │   ├── deu.txt             # Here deu.txt file should be placed
 │   ├── prepro              # Stores all preprocessed pkl files
-|── documentation           # Project documentation (Seminararbeit)
+|── documentation           # Presentation files 
 ├── download.sh             # download dataset
 ├── experiment              # Stores experiment files (checkpoints, history, plots) and train_eval.py
 │   ├── checkpoints         # Stores checkpoints and plots for every experiment
-│   ├── log_history.txt
-│   └── train_eval.py
+│   ├── log_history.txt     # File for logging history
+│   └── train_eval.py       # All training functions
 ├── global_settings.py      # defines global settings
 ├── model                   # Model components
-│   ├── model.py            
-├── notebooks               # Jupyter notebooks
-│   └── Presentation.ipynb  
+│   ├── model.py            # Model objects (encoder, decoder)
 ├── Pipfile         
 ├── Pipfile.lock
 ├── README.md
@@ -39,11 +37,12 @@ Kurze Projektbeschreibung:
 ├── dry_run.py              # First experiments with standard settings
 ├── translate.py            # translate.py
 ├── tutorial                # tutorial
+├── Presentation.ipynb      # Presentation notebook
 └── utils                   # utilities, e.g. mappings, preprocessing, tokenization, general utils
     ├── mappings.py
-    ├── prepro.py
-    ├── tokenize.py
-    └── utils.py
+    ├── prepro.py           # Preprocessing script (used in run_experiment.py and dry_run.py)
+    ├── tokenize.py         # Data preparation and handling
+    └── utils.py            # Further utility methods
 ```
 
 ## 2. Programm verwenden
@@ -141,7 +140,7 @@ Beispielübersetzungen:
 | I think you should stop writing your essay | ich denke du solltest deinen aufsatz zu stoeren
 
 
-## 5. Quellen
+## 4. Quellen
 
 Code-Quellen:
 
