@@ -36,7 +36,7 @@ Kurze Projektbeschreibung:
 ├── run_experiment.py       # main execution file
 ├── dry_run.py              # First experiments with standard settings
 ├── translate.py            # translate.py
-├── tutorial                # tutorial
+#├── tutorial                # tutorial
 ├── Presentation.ipynb      # Presentation notebook
 └── utils                   # utilities, e.g. mappings, preprocessing, tokenization, general utils
     ├── mappings.py
