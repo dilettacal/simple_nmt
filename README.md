@@ -116,12 +116,17 @@ python translate.py --path experiment/checkpoints/dry_run_simple_nmt_model_full_
 python dry_run.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 15000 --batch_size 100 --lr 0.001 --dec_lr 1 --nlayers 2 
 ```
 
-* Gutes Ergebnis erzielt mit `run_experiment.py`* :
+* Gute Ergebnisse erzielt mit `run_experiment.py`* :
+- 2-Layers
 ```bash
 python run_experiment.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 30000 --batch_size 100 --lr 0.003 --dec_lr 1 --nlayers 2
 ```
+ - 1-Layer
+```bash
+python run_experiment.py --emb 256 --hid 256 --iterations 23000  --lr 0.003 --dec_lr 1 --voc_all True --batch_size 64  --teacher 1.0  --clip 50.0 --tbptt 'False' --max_len 10
+```
 
-Beispielübersetzungen :
+Beispielübersetzungen:
 
 | Source        | Target           
 | ------------- |-------------
