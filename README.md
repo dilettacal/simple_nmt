@@ -21,29 +21,28 @@ Kurze Projektbeschreibung:
 ├── data
 │   ├── deu.txt             # Here deu.txt file should be placed
 │   ├── prepro              # Stores all preprocessed pkl files
-|── documentation           # Project documentation (Seminararbeit)
+|── documentation           # Presentation files 
 ├── download.sh             # download dataset
 ├── experiment              # Stores experiment files (checkpoints, history, plots) and train_eval.py
 │   ├── checkpoints         # Stores checkpoints and plots for every experiment
-│   ├── log_history.txt
-│   └── train_eval.py
+│   ├── log_history.txt     # File for logging history
+│   └── train_eval.py       # All training functions
 ├── global_settings.py      # defines global settings
 ├── model                   # Model components
-│   ├── model.py            
-├── notebooks               # Jupyter notebooks
-│   └── Presentation.ipynb  
+│   ├── model.py            # Model objects (encoder, decoder)
 ├── Pipfile         
 ├── Pipfile.lock
 ├── README.md
 ├── run_experiment.py       # main execution file
 ├── dry_run.py              # First experiments with standard settings
 ├── translate.py            # translate.py
-├── tutorial                # tutorial
+#├── tutorial                # tutorial
+├── Presentation.ipynb      # Presentation notebook
 └── utils                   # utilities, e.g. mappings, preprocessing, tokenization, general utils
     ├── mappings.py
-    ├── prepro.py
-    ├── tokenize.py
-    └── utils.py
+    ├── prepro.py           # Preprocessing script (used in run_experiment.py and dry_run.py)
+    ├── tokenize.py         # Data preparation and handling
+    └── utils.py            # Further utility methods
 ```
 
 ## 2. Programm verwenden
@@ -56,7 +55,14 @@ Dieser Datensatz kann aus der Webseite heruntergeladen werden. Dafür gibt es im
 lternativ kann die zip-Datei aus dem Link manuell heruntergeladen werden. Die txt-Datei soll manuell in den Ordner `data` geschoben werden. Sollte die Dateiname nicht "deu.txt" heißen, so muss sie entsprechend umbenannt werden.
 
 ### 2.2 Packages
-In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden.
+In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden. Alternativ können die Dependencies mit `pipenv` installiert werden.
+
+Die Installation ist auf **Ubuntu 18.04** gestestet.
+
+Absolut notwendige Packages sind:
+- `pytorch`
+- `numpy`
+- `matplotlib`
 
 ### 2.3 Experiment ausführen
 
@@ -116,12 +122,17 @@ python translate.py --path experiment/checkpoints/dry_run_simple_nmt_model_full_
 python dry_run.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 15000 --batch_size 100 --lr 0.001 --dec_lr 1 --nlayers 2 
 ```
 
-* Gutes Ergebnis erzielt mit `run_experiment.py`* :
+* Gute Ergebnisse erzielt mit `run_experiment.py`* :
+- 2-Layers
 ```bash
 python run_experiment.py --tbptt "False" --max_len 10 --emb 512 --hid 512 --teacher 1.0 --iterations 30000 --batch_size 100 --lr 0.003 --dec_lr 1 --nlayers 2
 ```
+ - 1-Layer
+```bash
+python run_experiment.py --emb 256 --hid 256 --iterations 23000  --lr 0.003 --dec_lr 1 --voc_all True --batch_size 64  --teacher 1.0  --clip 50.0 --tbptt 'False' --max_len 10
+```
 
-Beispielübersetzungen :
+Beispielübersetzungen:
 
 | Source        | Target           
 | ------------- |-------------
@@ -136,7 +147,7 @@ Beispielübersetzungen :
 | I think you should stop writing your essay | ich denke du solltest deinen aufsatz zu stoeren
 
 
-## 5. Quellen
+## 4. Quellen
 
 Code-Quellen:
 
