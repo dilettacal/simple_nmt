@@ -55,7 +55,14 @@ Dieser Datensatz kann aus der Webseite heruntergeladen werden. Dafür gibt es im
 lternativ kann die zip-Datei aus dem Link manuell heruntergeladen werden. Die txt-Datei soll manuell in den Ordner `data` geschoben werden. Sollte die Dateiname nicht "deu.txt" heißen, so muss sie entsprechend umbenannt werden.
 
 ### 2.2 Packages
-In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden.
+In der Datei `requirements.txt` sind die notwendigen Packages aufgelistet. Diese können in einem virtuellen Environment auch installiert werden. Alternativ können die Dependencies mit `pipenv` installiert werden.
+
+Die Installation ist auf **Ubuntu 18.04** gestestet.
+
+Absolut notwendige Packages sind:
+- `pytorch`
+- `numpy`
+- `matplotlib`
 
 ### 2.3 Experiment ausführen
 
