@@ -43,7 +43,7 @@ class EncoderLSTM(nn.Module):
         # Pack padded batch of sequences for RNN module
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
         # Forward pass through GRU
-        outputs, hidden = self.rnn(packed)
+        outputs, hidden = self.rnn(packed, hidden)
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
