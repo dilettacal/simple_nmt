@@ -30,13 +30,12 @@ Kurze Projektbeschreibung:
 ├── global_settings.py      # defines global settings
 ├── model                   # Model components
 │   ├── model.py            # Model objects (encoder, decoder)
-├── Pipfile         
-├── Pipfile.lock
 ├── README.md
+├── requirements.txt        # Useful packages to run the program
 ├── run_experiment.py       # main execution file
 ├── dry_run.py              # First experiments with standard settings
 ├── translate.py            # translate.py
-#├── tutorial                # tutorial
+├── tutorial                # tutorial
 ├── Presentation.ipynb      # Presentation notebook
 └── utils                   # utilities, e.g. mappings, preprocessing, tokenization, general utils
     ├── mappings.py
