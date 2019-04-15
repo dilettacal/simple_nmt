@@ -182,7 +182,7 @@ def eval(input_variable, lengths, target_variable, mask, max_target_len, trg_len
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
-            decoder_input = decoder_input.detach()
+            #decoder_input = decoder_input.detach()
             try:
                 decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]]) #RuntimeError: CUDA error: device-side assert triggered
                 decoder_input = decoder_input.to(device)

@@ -32,7 +32,7 @@ class EncoderLSTM(nn.Module):
             raise AttributeError("Cell type not allowed!")
         self.dropout= nn.Dropout(dropout)
 
-    def forward(self, input_seq, input_lengths):
+    def forward(self, input_seq, input_lengths, hidden=None):
         # input_seq: batch of input sentence, shape = (max_len, batch_size)
         # input_lengths = list of sentence lengths corresponding to each sent in the batch
         # hidden state of shape = (n_layers x num_directions, batch_size, hidden_size)
